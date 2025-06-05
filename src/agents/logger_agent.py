@@ -10,13 +10,23 @@ class LoggerAgent:
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
-    def log(self, agent, action, price=None, confidence=None):
+    def log(
+        self,
+        agent,
+        action,
+        price=None,
+        confidence=None,
+        symbol=None,
+        return_rate=None,
+    ):
         entry = {
             "timestamp": datetime.utcnow().isoformat(),
             "agent": agent,
             "action": action,
             "price": price,
             "confidence": confidence,
+            "symbol": symbol,
+            "return_rate": return_rate,
         }
         filename = self.log_dir / f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S%f')}.json"
         with open(filename, "w", encoding="utf-8") as f:
