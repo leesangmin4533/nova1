@@ -1,16 +1,29 @@
-# Introduction to GitHub
+# Trading Agent Demo
 
-<img src="https://octodex.github.com/images/Professortocat_v2.png" align="right" height="200px" />
+This repository provides a minimal example of a multi-agent trading framework with
+a simple PyQt5 dashboard. The agents demonstrate the following roles:
 
-Hey @leesangmin4533!
+- **MarketSentimentAgent**: classifies market sentiment.
+- **StrategySelector**: chooses a trading strategy based on sentiment.
+- **EntryDecisionAgent**: decides whether to buy, sell, or hold.
+- **PositionManager**: evaluates open positions for exit conditions.
+- **LoggerAgent**: records agent activity to JSON files.
+- **VisualizerAgent**: displays the current state in a window.
+- **LearningAgent**: placeholder for future strategy learning.
 
-Mona here. I'm done preparing your exercise. Hope you enjoy! 💚
+## Requirements
 
-Remember, it's self-paced so feel free to take a break! ☕️
+- Python 3.8+
+- PyQt5
 
-[![](https://img.shields.io/badge/Go%20to%20Exercise-%E2%86%92-1f883d?style=for-the-badge&logo=github&labelColor=197935)](https://github.com/leesangmin4533/nova1/issues/1)
+Install dependencies:
 
----
+```bash
+pip install -r requirements.txt
+```
 
-&copy; 2025 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
+Run the dashboard:
 
+```bash
+python main.py
+```
