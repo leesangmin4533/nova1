@@ -1,0 +1,64 @@
+version: 1.0
+
+strategy_framework:
+  structure:
+    - market_analysis
+    - strategy_selection
+    - entry_decision
+    - position_management
+    - feedback_and_learning
+  refresh_interval:
+    market_analysis: 60  # seconds
+    strategy_score_update: 1800  # seconds
+  execution_threshold: 0.65
+  blocked_if_below_threshold: true
+
+time_constraints:
+  default_active_time: "09:00-10:30"
+  enforce_time_window: true
+
+scoring_weights:
+  gap_ratio:
+    weight: 0.5
+    decay_on_failure: 0.2
+    boost_on_success: 0.1
+  volume_spike:
+    weight: 0.3
+    decay_on_failure: 0.15
+    boost_on_success: 0.05
+  rsi:
+    weight: 0.2
+    decay_on_failure: 0.1
+    boost_on_success: 0.05
+  candle_pattern:
+    weight: 0.3
+    decay_on_failure: 0.2
+    boost_on_success: 0.1
+  time_zone:
+    required: true
+
+failure_policy:
+  define_failure:
+    time_limit_minutes: 3
+    loss_threshold_percent: 0.8
+  review_cycle: 10  # trades
+  condition_disable_threshold: 0.7
+  strategy_disable_threshold: 0.8
+  on_fail_action: log_and_decay_weight
+
+logging_policy:
+  log_every_trade: true
+  log_fields:
+    - timestamp
+    - strategy_name
+    - score
+    - condition_values
+    - execution_result
+    - fail_reason
+
+meta_protocols:
+  enforce_versioning: true
+  strategy_version_format: "vX.X"
+  allow_strategy_overlap: false
+  prefer_highest_priority: true
+  retrain_interval: "daily"

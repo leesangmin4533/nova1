@@ -35,3 +35,14 @@ Run the dashboard:
 ```bash
 python main.py
 ```
+
+## Configuration
+
+Default parameters for the NOVA framework are stored in `kodex_config.yaml`.
+This YAML file defines refresh intervals, scoring weights, and failure
+policies used by the agents. You can load it using `ConfigLoader`:
+
+```python
+from config_loader import ConfigLoader
+config = ConfigLoader().load()
+```
