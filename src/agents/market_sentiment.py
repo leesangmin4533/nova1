@@ -21,6 +21,7 @@ class MarketSentimentAgent:
         url = f"https://api.upbit.com/v1/ticker?markets={ticker}"
         try:
             resp = requests.get(url, timeout=5)
+            resp.raise_for_status()
             data = resp.json()
             return data[0].get("trade_price") if data else None
         except Exception:
