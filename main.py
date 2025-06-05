@@ -34,7 +34,7 @@ class TradingApp(QtWidgets.QApplication):
         strategy, params = self.strategy_selector.select(sentiment)
         signal = self.entry_agent.evaluate((strategy, params), None, None)
         position = "None"
-        self.logger.log("EntryDecisionAgent", signal)
+        self.logger.log(sentiment, strategy, signal)
         self.visualizer.update_state(sentiment, strategy, position)
 
 
