@@ -2,22 +2,26 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+from .market_sentiment import MarketSentimentAgent
+
 
 class LoggerAgent:
-    """Log actions and agent outputs to JSON files."""
+    """Log trading decisions to a single JSON file."""
 
-    def __init__(self, log_dir="log"):
+    def __init__(self, log_dir="logs"):
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.log_file = self.log_dir / "log.json"
 
-    def log(self, agent, action, price=None, confidence=None):
+    def log(self, sentiment, strategy, decision):
+        current_price = MarketSentimentAgent.get_current_price()
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "agent": agent,
-            "action": action,
-            "price": price,
-            "confidence": confidence,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "sentiment": sentiment,
+            "strategy": strategy,
+            "decision": decision,
+            "current_price": current_price,
         }
-        filename = self.log_dir / f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S%f')}.json"
-        with open(filename, "w", encoding="utf-8") as f:
+        with open(self.log_file, "a", encoding="utf-8") as f:
             json.dump(entry, f, ensure_ascii=False, indent=2)
+            f.write("\n")

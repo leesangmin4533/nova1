@@ -1,3 +1,6 @@
+import requests
+
+
 class MarketSentimentAgent:
     """Agent that classifies market sentiment into five levels."""
 
@@ -11,3 +14,15 @@ class MarketSentimentAgent:
         # TODO: implement actual indicators
         self.state = self.LEVELS[2]
         return self.state
+
+    @staticmethod
+    def get_current_price(ticker="KRW-BTC"):
+        """Return the latest trade price from Upbit API."""
+        url = f"https://api.upbit.com/v1/ticker?markets={ticker}"
+        try:
+            resp = requests.get(url, timeout=5)
+            resp.raise_for_status()
+            data = resp.json()
+            return data[0].get("trade_price") if data else None
+        except Exception:
+            return None
