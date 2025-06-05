@@ -4,7 +4,7 @@ import hashlib
 import time
 import uuid
 import os
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 
 class UpbitBroker:
@@ -33,4 +33,17 @@ class UpbitBroker:
                 if resp.status != 201:
                     raise Exception(f"Order failed: {resp.status}")
                 return await resp.json()
+
+
+class PaperBroker:
+    """Simulated broker that records orders without executing them."""
+
+    def __init__(self):
+        self.orders: List[Dict[str, Any]] = []
+
+    def place_order(self, side: str, volume: str = "0", price: str = "0", market: str = "KRW-BTC") -> Dict[str, Any]:
+        """Record an order and return confirmation."""
+        order = {"side": side, "volume": volume, "price": price, "market": market, "timestamp": time.time()}
+        self.orders.append(order)
+        return order
 

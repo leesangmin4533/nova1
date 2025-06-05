@@ -10,7 +10,7 @@ from agents.visualizer import VisualizerAgent
 from agents.learning_agent import LearningAgent
 from config_loader import ConfigLoader
 from upbit_api import UpbitClient
-from broker import UpbitBroker
+from broker import PaperBroker
 
 
 class TradingApp(QtWidgets.QApplication):
@@ -19,7 +19,8 @@ class TradingApp(QtWidgets.QApplication):
         self.config = ConfigLoader().load()
         self.sentiment_agent = MarketSentimentAgent()
         self.strategy_selector = StrategySelector()
-        self.broker = UpbitBroker()
+        # use a paper broker so no real orders are sent
+        self.broker = PaperBroker()
         self.entry_agent = EntryDecisionAgent(self.broker)
         self.position_manager = PositionManager()
         self.logger = LoggerAgent()

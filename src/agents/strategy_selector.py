@@ -14,6 +14,14 @@ class StrategySelector:
             "take_profit": 0.65,
             "hold": 0.5,
         }
+        self.win_rates: Dict[str, float] = {
+            "reversal": 0.5,
+            "swing": 0.55,
+            "trend_follow": 0.6,
+            "momentum": 0.52,
+            "take_profit": 0.65,
+            "hold": 0.5,
+        }
 
     def select(self, sentiment: str) -> Tuple[str, Dict[str, Any]]:
         """Select a strategy ID and parameters based on sentiment and scores."""
@@ -25,7 +33,13 @@ class StrategySelector:
             "EXTREME_GREED": [("take_profit", {"risk": 0.05})],
         }
         candidates = mapping.get(sentiment, [("hold", {})])
-        # choose candidate with highest score
-        best = max(candidates, key=lambda c: self.scores.get(c[0], 0))
+        # choose candidate with highest combined score
+        def value(c):
+            sid = c[0]
+            score = self.scores.get(sid, 0)
+            win = self.win_rates.get(sid, 0)
+            return 0.5 * score + 0.5 * win
+
+        best = max(candidates, key=value)
         self.current_strategy = best
         return self.current_strategy

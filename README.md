@@ -11,7 +11,7 @@ a simple PyQt5 dashboard. The agents demonstrate the following roles:
 - **VisualizerAgent**: displays the current state in a window.
 - **LearningAgent**: adjusts strategy condition weights based on performance.
 - **UpbitClient**: fetches real-time market data.
-- **UpbitBroker**: example interface for order execution.
+- **PaperBroker**: records orders instead of executing real trades.
 
 Additional utility functions are provided in `nova_strategy.py`:
 
