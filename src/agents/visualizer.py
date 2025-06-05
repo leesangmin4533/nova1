@@ -11,11 +11,25 @@ class VisualizerAgent(QtWidgets.QWidget):
         self.sentiment_label = QtWidgets.QLabel("Sentiment: NEUTRAL")
         self.strategy_label = QtWidgets.QLabel("Strategy: None")
         self.position_label = QtWidgets.QLabel("Position: None")
-        for widget in [self.sentiment_label, self.strategy_label, self.position_label]:
+        self.signal_label = QtWidgets.QLabel("Signal: HOLD")
+        for widget in [
+            self.sentiment_label,
+            self.strategy_label,
+            self.position_label,
+            self.signal_label,
+        ]:
             self.layout.addWidget(widget)
         self.setLayout(self.layout)
 
-    def update_state(self, sentiment, strategy, position):
+    def update_state(self, sentiment, strategy, position, signal):
         self.sentiment_label.setText(f"Sentiment: {sentiment}")
         self.strategy_label.setText(f"Strategy: {strategy}")
-        self.position_label.setText(f"Position: {position}")
+        if isinstance(position, dict):
+            entry = position.get("entry_price")
+            rr = position.get("return_rate")
+            self.position_label.setText(
+                f"Position: entry {entry:.2f}, return {rr:.2%}"
+            )
+        else:
+            self.position_label.setText("Position: None")
+        self.signal_label.setText(f"Signal: {signal}")

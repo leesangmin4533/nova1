@@ -7,6 +7,10 @@ from agents.position_manager import PositionManager
 from agents.logger_agent import LoggerAgent
 from agents.visualizer import VisualizerAgent
 from agents.learning_agent import LearningAgent
+from agents.utils import get_upbit_candles
+
+
+SYMBOL = "KRW-BTC"
 
 
 class TradingApp(QtWidgets.QApplication):
@@ -21,6 +25,8 @@ class TradingApp(QtWidgets.QApplication):
         self.visualizer = VisualizerAgent()
         self.visualizer.show()
         self.timer = self.createTimer()
+        self.position = None
+        self.last_signal = "HOLD"
 
     def createTimer(self):
         timer = QtCore.QTimer()
@@ -29,13 +35,79 @@ class TradingApp(QtWidgets.QApplication):
         return timer
 
     def loop(self):
-        # Placeholder example data
-        sentiment = self.sentiment_agent.update(None, None, None)
+        try:
+            candle_data = get_upbit_candles(SYMBOL, 20)
+        except Exception as e:
+            print(f"Failed to fetch candles: {e}")
+            return
+
+        current_price = candle_data[-1]
+
+        sentiment = self.sentiment_agent.update(candle_data, None, None)
         strategy, params = self.strategy_selector.select(sentiment)
-        signal = self.entry_agent.evaluate((strategy, params), None, None)
-        position = "None"
-        self.logger.log("EntryDecisionAgent", signal)
-        self.visualizer.update_state(sentiment, strategy, position)
+
+        order_status = {
+            "has_position": self.position is not None,
+            "return_rate": 0.0,
+        }
+        if self.position:
+            order_status["return_rate"] = (
+                current_price - self.position["entry_price"]
+            ) / self.position["entry_price"]
+
+        signal = self.entry_agent.evaluate((strategy, params), candle_data, order_status)
+        self.last_signal = signal
+
+        if signal == "BUY" and self.position is None:
+            self.position = {"entry_price": current_price, "quantity": 1.0, "symbol": SYMBOL}
+            self.logger.log(
+                "EntryDecisionAgent",
+                "BUY",
+                price=current_price,
+                symbol=SYMBOL,
+                return_rate=0.0,
+            )
+        elif signal == "SELL" and self.position is not None:
+            return_rate = (
+                current_price - self.position["entry_price"]
+            ) / self.position["entry_price"]
+            self.logger.log(
+                "EntryDecisionAgent",
+                "SELL",
+                price=current_price,
+                symbol=self.position["symbol"],
+                return_rate=return_rate,
+            )
+            self.position = None
+
+        if self.position:
+            decision = self.position_manager.update(
+                self.position, self.position["entry_price"], current_price
+            )
+            return_rate = (
+                current_price - self.position["entry_price"]
+            ) / self.position["entry_price"]
+            if decision == "CLOSE":
+                self.logger.log(
+                    "PositionManager",
+                    "CLOSE",
+                    price=current_price,
+                    symbol=self.position["symbol"],
+                    return_rate=return_rate,
+                )
+                self.position = None
+
+        position_state = None
+        if self.position:
+            return_rate = (
+                current_price - self.position["entry_price"]
+            ) / self.position["entry_price"]
+            position_state = {
+                "entry_price": self.position["entry_price"],
+                "return_rate": return_rate,
+            }
+
+        self.visualizer.update_state(sentiment, strategy, position_state, self.last_signal)
 
 
 if __name__ == "__main__":

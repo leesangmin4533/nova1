@@ -6,5 +6,13 @@ class PositionManager:
 
     def update(self, position, entry_price, current_price):
         """Return CLOSE if exit conditions are met."""
-        # TODO: implement exit logic
+        if position is None:
+            return None
+
+        if current_price >= entry_price * 1.05:
+            return "CLOSE"
+
+        if current_price <= entry_price * 0.97:
+            return "CLOSE"
+
         return None
