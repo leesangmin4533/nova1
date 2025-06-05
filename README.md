@@ -11,6 +11,10 @@ a simple PyQt5 dashboard. The agents demonstrate the following roles:
 - **VisualizerAgent**: displays the current state in a window.
 - **LearningAgent**: placeholder for future strategy learning.
 
+This demo is configured with a *scalping* focus. Indicators such as short-term
+RSI, order book ratios and Bollinger Band breaks are used to quickly assess
+market sentiment and select aggressive intraday strategies.
+
 ## Requirements
 
 - Python 3.8+
