@@ -25,7 +25,8 @@ class TradingApp(QtWidgets.QApplication):
     def createTimer(self):
         timer = QtCore.QTimer()
         timer.timeout.connect(self.loop)
-        timer.start(1000)
+        # Poll Upbit data twice per second
+        timer.start(500)
         return timer
 
     def loop(self):
