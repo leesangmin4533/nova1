@@ -5,11 +5,13 @@ a simple PyQt5 dashboard. The agents demonstrate the following roles:
 
 - **MarketSentimentAgent**: classifies market sentiment.
 - **StrategySelector**: chooses a trading strategy based on sentiment.
-- **EntryDecisionAgent**: decides whether to buy, sell, or hold.
+- **EntryDecisionAgent**: evaluates MA cross and RSI to trigger orders.
 - **PositionManager**: evaluates open positions for exit conditions.
 - **LoggerAgent**: records agent activity to JSON files.
 - **VisualizerAgent**: displays the current state in a window.
 - **LearningAgent**: adjusts strategy condition weights based on performance.
+- **UpbitClient**: fetches real-time market data.
+- **UpbitBroker**: example interface for order execution.
 
 Additional utility functions are provided in `nova_strategy.py`:
 
@@ -20,6 +22,7 @@ Additional utility functions are provided in `nova_strategy.py`:
 
 - Python 3.8+
 - PyQt5
+- aiohttp
 
 Install dependencies:
 
