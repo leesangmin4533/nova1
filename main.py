@@ -1,4 +1,11 @@
 from PyQt5 import QtWidgets, QtCore
+import random
+from pathlib import Path
+
+import pandas as pd
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parent / "src"))
 
 from agents.market_sentiment import MarketSentimentAgent
 from agents.strategy_selector import StrategySelector
@@ -29,10 +36,22 @@ class TradingApp(QtWidgets.QApplication):
         return timer
 
     def loop(self):
-        # Placeholder example data
-        sentiment = self.sentiment_agent.update(None, None, None)
+        # Generate dummy candle data
+        if not hasattr(self, "candles"):
+            self.candles = [
+                {"close": 100 + random.random(), "volume": 1000 + random.randint(-10, 10)}
+                for _ in range(200)
+            ]
+        else:
+            last_price = self.candles[-1]["close"]
+            new_price = last_price * (1 + random.uniform(-0.01, 0.01))
+            self.candles.append({"close": new_price, "volume": 1000 + random.randint(-10, 10)})
+            self.candles = self.candles[-200:]
+
+        order_book = {"bid_volume": random.uniform(0.5, 1.5), "ask_volume": random.uniform(0.5, 1.5)}
+        sentiment = self.sentiment_agent.update(self.candles, order_book, None)
         strategy, params = self.strategy_selector.select(sentiment)
-        signal = self.entry_agent.evaluate((strategy, params), None, None)
+        signal = self.entry_agent.evaluate((strategy, params), self.candles, None)
         position = "None"
         self.logger.log("EntryDecisionAgent", signal)
         self.visualizer.update_state(sentiment, strategy, position)
