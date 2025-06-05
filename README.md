@@ -9,12 +9,16 @@ a simple PyQt5 dashboard. The agents demonstrate the following roles:
 - **PositionManager**: evaluates open positions for exit conditions.
 - **LoggerAgent**: records agent activity to JSON files.
 - **VisualizerAgent**: displays the current state in a window.
-- **LearningAgent**: placeholder for future strategy learning.
+- **LearningAgent**: updates strategy weights based on trade history.
 
 ## Requirements
 
 - Python 3.8+
 - PyQt5
+- numpy
+- pandas
+- scikit-learn
+- xgboost
 
 Install dependencies:
 
@@ -27,3 +31,7 @@ Run the dashboard:
 ```bash
 python main.py
 ```
+
+The example application generates dummy market data and demonstrates how the
+agents interact. Entry signals require a confidence of at least `0.65` based on
+simple rule weights.
