@@ -3,6 +3,7 @@ class StrategySelector:
 
     def __init__(self):
         self.current_strategy = None
+        self.strategy_mode = "HOLD"
         self.strategy_scores = {
             "reversal": 1.0,
             "swing": 1.0,
@@ -19,20 +20,21 @@ class StrategySelector:
             self.strategy_scores[name] = score
 
     def select(self, sentiment):
-        """Select a strategy ID using softmax of weights."""
+        """Select a strategy ID using softmax of weights and market state."""
         import math
         import random
 
         mapping = {
-            "EXTREME_FEAR": ["reversal", "swing"],
-            "FEAR": ["swing", "trend_follow"],
+            "EXTREME_FEAR": [],
+            "FEAR": ["swing"],
             "NEUTRAL": ["trend_follow", "momentum"],
-            "GREED": ["momentum", "take_profit"],
-            "EXTREME_GREED": ["take_profit", "momentum"],
+            "GREED": ["trend_follow", "reversal"],
+            "EXTREME_GREED": ["reversal", "take_profit"],
         }
         candidates = mapping.get(sentiment, list(self.strategy_scores.keys()))
         candidate_scores = {k: self.strategy_scores.get(k, 1.0) for k in candidates}
         if not candidate_scores:
+            self.strategy_mode = "HOLD"
             return "hold", {"weight": 1.0}, 0.0
 
         tau = 0.2
@@ -42,6 +44,14 @@ class StrategySelector:
         strategies = list(probs.keys())
         weights = list(probs.values())
         choice = random.choices(strategies, weights=weights, k=1)[0]
+        mode_map = {
+            "trend_follow": "TREND",
+            "momentum": "TREND",
+            "swing": "BOX",
+            "reversal": "REVERSAL",
+            "take_profit": "REVERSAL",
+        }
+        self.strategy_mode = mode_map.get(choice, "HOLD")
         weight = self.strategy_scores.get(choice, 1.0)
         params = {"weight": weight}
         self.current_strategy = (choice, params)
