@@ -58,6 +58,52 @@ async function refresh() {
             document.getElementById('orderbook_ratio').classList.toggle('positive', ratio > 0);
             document.getElementById('orderbook_ratio').classList.toggle('negative', ratio < 0);
         }
+
+        // 📈 실시간 시세 그래프
+        if (!window.priceHistory) window.priceHistory = [];
+        const now = new Date();
+        window.priceHistory.push({ x: now, y: data.price });
+        if (window.priceHistory.length > 100) window.priceHistory.shift();
+
+        Plotly.react('priceChart', [{
+          x: window.priceHistory.map(p => p.x),
+          y: window.priceHistory.map(p => p.y),
+          mode: 'lines+markers',
+          name: 'Price',
+          line: { color: 'blue' }
+        }], {
+          title: '실시간 시세 차트',
+          xaxis: { title: '시간' },
+          yaxis: { title: '가격' }
+        });
+
+        // 🏛️ 호가창 시각화
+        const bids = data.bids?.slice(0, 10).reverse() || [];
+        const asks = data.asks?.slice(0, 10) || [];
+
+        Plotly.react('orderbookChart', [
+          {
+            x: bids.map(b => b[1]),
+            y: bids.map(b => b[0].toString()),
+            orientation: 'h',
+            name: '매수호가',
+            type: 'bar',
+            marker: { color: 'green' }
+          },
+          {
+            x: asks.map(a => -a[1]),
+            y: asks.map(a => a[0].toString()),
+            orientation: 'h',
+            name: '매도호가',
+            type: 'bar',
+            marker: { color: 'red' }
+          }
+        ], {
+          title: '호가창 (상하 10개)',
+          barmode: 'overlay',
+          xaxis: { title: '거래량', zeroline: true },
+          yaxis: { title: '가격', autorange: 'reversed' }
+        });
     } catch (e) {
         console.error(e);
     }
