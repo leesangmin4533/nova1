@@ -21,6 +21,27 @@ class LoggerAgent:
             json.dump(data, f, ensure_ascii=False, indent=2)
         return data["timestamp"]
 
+    def log_success(
+        self,
+        agent: str,
+        action: str,
+        *,
+        price: float,
+        strategy: str,
+        return_rate: float,
+    ) -> None:
+        """Record a successful trade action."""
+
+        self.log_event(
+            {
+                "agent": agent,
+                "action": action,
+                "price": price,
+                "strategy": strategy,
+                "return_rate": round(return_rate, 4),
+            }
+        )
+
     def log(
         self,
         agent,
