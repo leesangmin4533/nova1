@@ -120,7 +120,9 @@ class TradingApp:
 
 if __name__ == "__main__":
     app = TradingApp()
-    start_status_server(app)
+    # Launch the Flask status server in a background daemon thread so
+    # that the trading loop can run uninterrupted.
+    server_thread = start_status_server(app)
     while True:
         app.loop()
         time.sleep(1)
