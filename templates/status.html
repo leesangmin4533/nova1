@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Status Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body>
+<section class="section">
+<div class="container">
+    <h1 class="title">Trading Status</h1>
+    <div class="columns is-multiline" id="cards">
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Sentiment</p>
+                <p id="sentiment" class="title">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Strategy</p>
+                <p id="strategy" class="title">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Signal</p>
+                <p id="signal" class="title">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Price</p>
+                <p id="price" class="title">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Balance</p>
+                <p id="balance" class="title">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Position</p>
+                <p id="position" class="title">-</p>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+<script src="{{ url_for('static', filename='status.js') }}"></script>
+</body>
+</html>
