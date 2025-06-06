@@ -1,4 +1,9 @@
 import time
+import os
+import sys
+
+# Ensure the src package is available for imports when running this file
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from agents.market_sentiment import MarketSentimentAgent
 from agents.strategy_selector import StrategySelector
