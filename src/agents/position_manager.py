@@ -8,8 +8,8 @@ INITIAL_CAPITAL = 1_000_000
 # Maximum number of simultaneous open trades
 MAX_ACTIVE_TRADES = 5
 
-# Fraction of available cash used per trade
-BUY_RATE = 0.2
+# Fraction of available cash used per trade (max 10% of balance)
+BUY_RATE = 0.1
 
 
 def can_enter_trade(active_trades):
@@ -18,10 +18,18 @@ def can_enter_trade(active_trades):
     return len(active_trades) < MAX_ACTIVE_TRADES
 
 
-def calculate_order_amount(cash):
-    """Return the order amount for a new trade given current cash."""
+def calculate_order_amount(cash, recent_volatility: float | None = None):
+    """Return the order amount for a new trade given current cash.
 
-    return cash * BUY_RATE
+    When ``recent_volatility`` is provided, the amount is scaled down as
+    volatility increases to reduce risk exposure.
+    """
+
+    amount = cash * BUY_RATE
+    if recent_volatility is not None:
+        factor = max(0.5, 1 - recent_volatility * 50)
+        amount *= factor
+    return amount
 
 
 def entry_block_reason(has_position: bool, confidence: Optional[float], score_percent: Optional[float]) -> Optional[str]:
@@ -51,14 +59,26 @@ class PositionManager:
             self.total_sells += 1
 
     def update(self, position, entry_price, current_price):
-        """Return CLOSE if exit conditions are met."""
+        """Evaluate open position and return action.
+
+        - Profit >= 3%   -> ``CLOSE``
+        - Loss <= -2%    -> ``PARTIAL_CLOSE`` on first trigger, ``CLOSE`` if
+          already reduced.
+        """
+
         if position is None:
             return None
 
-        if current_price >= entry_price * 1.15:
+        change = (current_price - entry_price) / entry_price
+
+        if change >= 0.03:
             return "CLOSE"
 
-        if current_price <= entry_price * 0.85:
+        if change <= -0.02:
+            if not position.get("half_closed"):
+                position["quantity"] *= 0.5
+                position["half_closed"] = True
+                return "PARTIAL_CLOSE"
             return "CLOSE"
 
         return None

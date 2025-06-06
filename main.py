@@ -15,6 +15,8 @@ from agents.position_manager import (
     INITIAL_CAPITAL,
     entry_block_reason,
 )
+from agents.risk_manager import RiskManager
+from agents.emotion_axis import EmotionAxis
 from agents.logger_agent import LoggerAgent
 from agents.learning_agent import LearningAgent
 from agents.utils import get_upbit_candles, get_upbit_orderbook
@@ -33,6 +35,8 @@ class TradingApp:
         self.strategy_selector = StrategySelector()
         self.entry_agent = EntryDecisionAgent()
         self.position_manager = PositionManager()
+        self.risk_manager = RiskManager()
+        self.emotion_axis = EmotionAxis()
         self.logger = LoggerAgent()
         self.learning_agent = LearningAgent()
         self.positions = []
@@ -51,6 +55,14 @@ class TradingApp:
             return
 
         self.current_price = candle_data[-1]
+
+        # recent volatility for risk management
+        if len(candle_data) >= 20:
+            mean20 = sum(candle_data[-20:]) / 20
+            var20 = sum((c - mean20) ** 2 for c in candle_data[-20:]) / 20
+            volatility = (var20 ** 0.5) / mean20 if mean20 else 0.0
+        else:
+            volatility = 0.0
 
         sentiment = self.sentiment_agent.update(candle_data, order_book, None)
         rsi = self.sentiment_agent.rsi
@@ -88,11 +100,17 @@ class TradingApp:
         score_percent = self.entry_agent.last_score_percent
         self.last_signal = signal
 
+        # update weights based on signal quality
+        self.learning_agent.adjust_from_signal(strategy, score_percent, confidence)
+
         reason = None
         if signal == "BUY":
             reason = entry_block_reason(len(self.positions) > 0, confidence, score_percent)
+            if self.emotion_axis.in_cooldown() or self.emotion_axis.should_pause_for_greed(rsi):
+                reason = reason or "COOLDOWN"
 
         if signal == "BUY" and reason is not None:
+            self.emotion_axis.record_result(False)
             self.logger.log_event({
                 "type": "entry_denied",
                 "symbol": SYMBOL,
@@ -102,12 +120,13 @@ class TradingApp:
             })
 
         if signal == "BUY" and reason is None and can_enter_trade(self.positions):
-            order_amount = calculate_order_amount(self.balance)
+            order_amount = self.risk_manager.order_amount(self.balance, volatility)
             if order_amount > 0:
                 qty = order_amount / self.current_price
                 self.balance -= order_amount
                 self.positions.append({"entry_price": self.current_price, "quantity": qty, "symbol": SYMBOL})
             self.position_manager.record_trade("BUY")
+            self.emotion_axis.record_result(True)
             ts = self.logger.log(
                 "EntryDecisionAgent",
                 "BUY",
@@ -124,6 +143,7 @@ class TradingApp:
                 "score_percent": score_percent,
             })
         elif signal == "SELL" and self.positions:
+            self.emotion_axis.record_result(True)
             pos = self.positions.pop(0)
             return_rate = (
                 self.current_price - pos["entry_price"]
@@ -140,6 +160,10 @@ class TradingApp:
             if ts:
                 self.last_trade_time = ts
             self.trade_history.append({"strategy": strategy, "return": return_rate})
+            self.learning_agent.record_trade(strategy, return_rate)
+        else:
+            if signal == "HOLD":
+                self.emotion_axis.record_result(False)
 
         to_remove = []
         for pos in self.positions:
@@ -162,6 +186,7 @@ class TradingApp:
                 if ts:
                     self.last_trade_time = ts
                 self.trade_history.append({"strategy": strategy, "return": return_rate})
+                self.learning_agent.record_trade(strategy, return_rate)
                 to_remove.append(pos)
         for pos in to_remove:
             self.positions.remove(pos)
@@ -182,7 +207,7 @@ class TradingApp:
         stats = analyze_logs(logs)
         cumulative_return = stats.get("cumulative_return", 0.0)
 
-        self.learning_agent.update(self.trade_history)
+        self.learning_agent.update()
         bids = [[b["price"], b["volume"]] for b in order_book.get("bids", []) if b.get("volume")]
         asks = [[a["price"], a["volume"]] for a in order_book.get("asks", []) if a.get("volume")]
 
@@ -190,6 +215,7 @@ class TradingApp:
             sentiment=sentiment,
             strategy=strategy,
             selected_strategy=strategy,
+            strategy_mode=self.strategy_selector.strategy_mode,
             strategy_score=score,
             position=position_state,
             signal=self.last_signal,
@@ -206,6 +232,7 @@ class TradingApp:
             rsi=rsi,
             bb_score=bb_score,
             ts_score=ts_score,
+            cooldown=self.emotion_axis.in_cooldown(),
             nearest_failed=self.entry_agent.nearest_failed,
             return_rate=return_rate,
             cumulative_return=cumulative_return,
@@ -231,6 +258,8 @@ if __name__ == "__main__":
             buy_count=app.position_manager.total_buys,
             sell_count=app.position_manager.total_sells,
             nearest_failed=app.entry_agent.nearest_failed,
+            cooldown=app.emotion_axis.in_cooldown(),
+            strategy_mode=app.strategy_selector.strategy_mode,
         )
         app.loop()
         time.sleep(2)
