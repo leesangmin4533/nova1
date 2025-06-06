@@ -26,6 +26,7 @@ state_store = {
     "rsi": None,
     "bb_score": None,
     "ts_score": None,
+    "nearest_failed": None,
     "return_rate": None,
     "cumulative_return": 0.0,
     "last_trade_time": None,

@@ -41,3 +41,14 @@ def test_orderbook_weighted_sell():
     assert isinstance(res, dict)
     assert res["signal"] == "SELL"
 
+
+def test_nearest_failed_condition():
+    agent = EntryDecisionAgent()
+    chart = [100] * 20 + [100.5, 100, 100.4, 99.8, 100.2]
+    result = agent.evaluate("momentum", chart, None)
+    assert result == "HOLD"
+    nf = agent.nearest_failed
+    assert nf["condition"] == "rsi_above_55"
+    assert nf["passed"] is False
+    assert nf["diff"] == pytest.approx(-0.83, abs=0.1)
+

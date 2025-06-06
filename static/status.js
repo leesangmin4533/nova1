@@ -23,6 +23,15 @@ async function refresh() {
         document.getElementById('rsi').innerText = (data.rsi !== undefined && data.rsi !== null) ? data.rsi.toFixed(2) : '-';
         document.getElementById('bb_score').innerText = data.bb_score !== undefined ? data.bb_score : '-';
         document.getElementById('ts_score').innerText = data.ts_score !== undefined ? data.ts_score : '-';
+        if (data.nearest_failed) {
+            const nf = data.nearest_failed;
+            const text = `${nf.condition} (${nf.diff.toFixed(2)})`;
+            const elem = document.getElementById('nearest_failed');
+            elem.innerText = text;
+            elem.classList.toggle('negative', nf.diff < 0);
+        } else {
+            document.getElementById('nearest_failed').innerText = '-';
+        }
         if (data.return_rate !== null && data.return_rate !== undefined) {
             const elem = document.getElementById('return_rate');
             const val = (data.return_rate * 100).toFixed(2);
