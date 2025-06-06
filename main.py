@@ -7,7 +7,7 @@ from agents.position_manager import PositionManager
 from agents.logger_agent import LoggerAgent
 from agents.visualizer import VisualizerAgent
 from agents.learning_agent import LearningAgent
-from agents.utils import get_upbit_candles
+from agents.utils import get_upbit_candles, get_upbit_orderbook
 
 
 SYMBOL = "KRW-BTC"
@@ -37,13 +37,15 @@ class TradingApp(QtWidgets.QApplication):
     def loop(self):
         try:
             candle_data = get_upbit_candles(SYMBOL, 20)
+            order_book = get_upbit_orderbook(SYMBOL)
         except Exception as e:
-            print(f"Failed to fetch candles: {e}")
+            print(f"Failed to fetch market data: {e}")
             return
 
         current_price = candle_data[-1]
 
-        sentiment = self.sentiment_agent.update(candle_data, None, None)
+        sentiment = self.sentiment_agent.update(candle_data, order_book, None)
+        self.strategy_selector.update_scores(self.learning_agent.weights)
         strategy, params = self.strategy_selector.select(sentiment)
 
         order_status = {

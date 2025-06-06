@@ -9,10 +9,10 @@ class PositionManager:
         if position is None:
             return None
 
-        if current_price >= entry_price * 1.05:
+        if current_price >= entry_price * 1.15:
             return "CLOSE"
 
-        if current_price <= entry_price * 0.97:
+        if current_price <= entry_price * 0.85:
             return "CLOSE"
 
         return None
