@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trading Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<section class="section">
+<div class="container">
+    <h1 class="title">Trading Dashboard</h1>
+    <div class="columns">
+        <div class="column is-half">
+            <div class="box">
+                <h2 class="subtitle">BTC Price: <span id="price">-</span></h2>
+                <canvas id="priceChart"></canvas>
+            </div>
+        </div>
+        <div class="column is-half">
+            <div class="box">
+                <p>Sentiment: <span id="sentiment">-</span></p>
+                <p>Strategy: <span id="strategy">-</span></p>
+                <p>Signal: <span id="signal">-</span></p>
+                <p>Balance: <span id="balance">-</span></p>
+                <p>Equity: <span id="equity">-</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+<script>
+let ctx = document.getElementById('priceChart').getContext('2d');
+let chart = new Chart(ctx, {type: 'line', data: {labels: [], datasets: [{label:'Price', data:[], borderColor:'#3273dc'}]}, options:{scales:{x:{display:false}}}});
+async function update() {
+    const res = await fetch('/status');
+    const data = await res.json();
+    document.getElementById('sentiment').innerText = data.sentiment || '-';
+    document.getElementById('strategy').innerText = data.strategy || '-';
+    document.getElementById('signal').innerText = data.signal || '-';
+    document.getElementById('balance').innerText = data.balance ? data.balance.toFixed(2) : '-';
+    document.getElementById('equity').innerText = data.equity ? data.equity.toFixed(2) : '-';
+    document.getElementById('price').innerText = data.price ? data.price.toFixed(2) : '-';
+    if (data.price) {
+        chart.data.labels.push('');
+        chart.data.datasets[0].data.push(data.price);
+        if (chart.data.labels.length > 20) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+        chart.update();
+    }
+}
+setInterval(update, 2000);
+update();
+</script>
+</body>
+</html>

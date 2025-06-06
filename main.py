@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+import time
 
 from agents.market_sentiment import MarketSentimentAgent
 from agents.strategy_selector import StrategySelector
@@ -14,9 +14,10 @@ from status_server import start_status_server
 SYMBOL = "KRW-BTC"
 
 
-class TradingApp(QtWidgets.QApplication):
-    def __init__(self, args):
-        super().__init__(args)
+class TradingApp:
+    """Main application that coordinates all agents."""
+
+    def __init__(self):
         self.sentiment_agent = MarketSentimentAgent()
         self.strategy_selector = StrategySelector()
         self.entry_agent = EntryDecisionAgent()
@@ -24,16 +25,10 @@ class TradingApp(QtWidgets.QApplication):
         self.logger = LoggerAgent()
         self.learning_agent = LearningAgent()
         self.visualizer = VisualizerAgent()
-        self.visualizer.show()
-        self.timer = self.createTimer()
         self.position = None
         self.last_signal = "HOLD"
-
-    def createTimer(self):
-        timer = QtCore.QTimer()
-        timer.timeout.connect(self.loop)
-        timer.start(1000)
-        return timer
+        self.current_price = 0.0
+        self.balance = 1_000_000.0  # KRW starting balance
 
     def loop(self):
         try:
@@ -43,7 +38,7 @@ class TradingApp(QtWidgets.QApplication):
             print(f"Failed to fetch market data: {e}")
             return
 
-        current_price = candle_data[-1]
+        self.current_price = candle_data[-1]
 
         sentiment = self.sentiment_agent.update(candle_data, order_book, None)
         self.strategy_selector.update_scores(self.learning_agent.weights)
@@ -62,22 +57,24 @@ class TradingApp(QtWidgets.QApplication):
         self.last_signal = signal
 
         if signal == "BUY" and self.position is None:
-            self.position = {"entry_price": current_price, "quantity": 1.0, "symbol": SYMBOL}
+            self.position = {"entry_price": self.current_price, "quantity": 1.0, "symbol": SYMBOL}
+            self.balance -= self.current_price
             self.logger.log(
                 "EntryDecisionAgent",
                 "BUY",
-                price=current_price,
+                price=self.current_price,
                 symbol=SYMBOL,
                 return_rate=0.0,
             )
         elif signal == "SELL" and self.position is not None:
             return_rate = (
-                current_price - self.position["entry_price"]
+                self.current_price - self.position["entry_price"]
             ) / self.position["entry_price"]
+            self.balance += self.current_price * self.position["quantity"]
             self.logger.log(
                 "EntryDecisionAgent",
                 "SELL",
-                price=current_price,
+                price=self.current_price,
                 symbol=self.position["symbol"],
                 return_rate=return_rate,
             )
@@ -85,16 +82,17 @@ class TradingApp(QtWidgets.QApplication):
 
         if self.position:
             decision = self.position_manager.update(
-                self.position, self.position["entry_price"], current_price
+                self.position, self.position["entry_price"], self.current_price
             )
-            return_rate = (
-                current_price - self.position["entry_price"]
-            ) / self.position["entry_price"]
             if decision == "CLOSE":
+                return_rate = (
+                    self.current_price - self.position["entry_price"]
+                ) / self.position["entry_price"]
+                self.balance += self.current_price * self.position["quantity"]
                 self.logger.log(
                     "PositionManager",
                     "CLOSE",
-                    price=current_price,
+                    price=self.current_price,
                     symbol=self.position["symbol"],
                     return_rate=return_rate,
                 )
@@ -103,19 +101,26 @@ class TradingApp(QtWidgets.QApplication):
         position_state = None
         if self.position:
             return_rate = (
-                current_price - self.position["entry_price"]
+                self.current_price - self.position["entry_price"]
             ) / self.position["entry_price"]
             position_state = {
                 "entry_price": self.position["entry_price"],
                 "return_rate": return_rate,
             }
 
-        self.visualizer.update_state(sentiment, strategy, position_state, self.last_signal)
+        self.visualizer.update_state(
+            sentiment,
+            strategy,
+            position_state,
+            self.last_signal,
+            self.current_price,
+            self.balance,
+        )
 
 
 if __name__ == "__main__":
-    import sys
-
-    app = TradingApp(sys.argv)
+    app = TradingApp()
     start_status_server(app)
-    sys.exit(app.exec_())
+    while True:
+        app.loop()
+        time.sleep(1)
