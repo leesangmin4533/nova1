@@ -40,3 +40,7 @@ class SessionLogger:
             "agent": agent,
             "action": "HOLD",
         })
+
+    def get_log_path(self) -> str:
+        """Return the path to the session log file as a string."""
+        return str(self.log_file)
