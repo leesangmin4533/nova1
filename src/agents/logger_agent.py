@@ -48,3 +48,15 @@ class LoggerAgent:
             json.dump(entry, f, ensure_ascii=False, indent=2)
         return timestamp
 
+    def get_recent_trades(self, limit: int = 10):
+        """Return recent BUY/SELL/CLOSE log entries."""
+        from log_analyzer import load_logs
+
+        logs = load_logs(str(self.log_dir))
+        trades = [
+            l
+            for l in logs
+            if l.get("action") in {"BUY", "SELL", "CLOSE"}
+        ]
+        return trades[-limit:]
+

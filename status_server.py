@@ -32,6 +32,8 @@ state_store = {
     "positions": [],
     "bids": [],
     "asks": [],
+    "buy_count": 0,
+    "sell_count": 0,
 }
 
 
@@ -76,14 +78,23 @@ def update_state(**kwargs):
     state_store["equity"] = equity
 
 
-def start_status_server(host: str = "0.0.0.0", port: int = 5000):
+def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_manager=None, logger_agent=None):
     """Start a background Flask server exposing current trading status."""
 
     app = Flask(__name__, static_folder="static", template_folder="templates")
 
     @app.route("/api/status")
     def api_status():
-        return jsonify(state_store)
+        status = dict(state_store)
+        if position_manager is not None:
+            status["buy_count"] = position_manager.total_buys
+            status["sell_count"] = position_manager.total_sells
+        if logger_agent is not None:
+            try:
+                status["recent_trades"] = logger_agent.get_recent_trades(limit=10)
+            except Exception:
+                status["recent_trades"] = []
+        return jsonify(status)
 
     @app.route("/")
     def dashboard():

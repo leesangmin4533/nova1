@@ -100,6 +100,17 @@
     </div>
     <div id="weights_chart" style="height:300px;"></div>
 
+    <div>
+      🟢 매수 횟수: <span id="buyCount">0</span>회<br>
+      🔴 매도 횟수: <span id="sellCount">0</span>회
+      <button onclick="toggleTradeLog()">거래 상세보기</button>
+    </div>
+
+    <div id="tradeLog" style="display:none;">
+      <h4>📋 거래 내역 (최근)</h4>
+      <ul id="tradeList"></ul>
+    </div>
+
     <!-- 실시간 시세 차트 -->
     <h3>📈 실시간 시세</h3>
     <div id="priceChart" style="height:300px;"></div>
