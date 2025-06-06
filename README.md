@@ -22,6 +22,12 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Run the tests with `pytest`:
+
+```bash
+pytest -q
+```
+
 Run the dashboard (a Flask status server will start on port 5000):
 
 ```bash
