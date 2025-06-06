@@ -33,6 +33,13 @@ Run the dashboard (a Flask web server will start on port 5000):
 python main.py
 ```
 
+To expose the dashboard via ngrok for remote access, run:
+
+```bash
+python run_with_ngrok.py
+```
+The script will automatically install `pyngrok` if missing and print the public URL.
+
 You can view the web dashboard at `http://localhost:5000/`.
 The server also exposes a JSON status API at `http://localhost:5000/api/status`.
 Log analysis is available at `http://localhost:5000/log`.
