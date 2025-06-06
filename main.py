@@ -13,6 +13,7 @@ from agents.position_manager import (
     can_enter_trade,
     calculate_order_amount,
     INITIAL_CAPITAL,
+    entry_block_reason,
 )
 from agents.logger_agent import LoggerAgent
 from agents.learning_agent import LearningAgent
@@ -71,7 +72,12 @@ class TradingApp:
             ) / first["entry_price"]
 
         result = self.entry_agent.evaluate(
-            (strategy, params), candle_data, order_status, order_book
+            (strategy, params),
+            candle_data,
+            order_status,
+            order_book,
+            logger=self.logger,
+            symbol=SYMBOL,
         )
         if isinstance(result, dict):
             signal = result.get("signal")
@@ -79,9 +85,23 @@ class TradingApp:
         else:
             signal = result
             confidence = None
+        score_percent = self.entry_agent.last_score_percent
         self.last_signal = signal
 
-        if signal == "BUY" and can_enter_trade(self.positions):
+        reason = None
+        if signal == "BUY":
+            reason = entry_block_reason(len(self.positions) > 0, confidence, score_percent)
+
+        if signal == "BUY" and reason is not None:
+            self.logger.log_event({
+                "type": "entry_denied",
+                "symbol": SYMBOL,
+                "reason": reason,
+                "confidence": confidence,
+                "score_percent": score_percent,
+            })
+
+        if signal == "BUY" and reason is None and can_enter_trade(self.positions):
             order_amount = calculate_order_amount(self.balance)
             if order_amount > 0:
                 qty = order_amount / self.current_price
@@ -97,6 +117,12 @@ class TradingApp:
             )
             if ts:
                 self.last_trade_time = ts
+            self.logger.log_event({
+                "type": "entry_approved",
+                "symbol": SYMBOL,
+                "confidence": confidence,
+                "score_percent": score_percent,
+            })
         elif signal == "SELL" and self.positions:
             pos = self.positions.pop(0)
             return_rate = (

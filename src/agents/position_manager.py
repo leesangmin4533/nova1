@@ -1,5 +1,7 @@
 """Utilities for managing trading positions and capital."""
 
+from typing import Optional
+
 # Initial capital for the trading system (in KRW)
 INITIAL_CAPITAL = 1_000_000
 
@@ -20,6 +22,17 @@ def calculate_order_amount(cash):
     """Return the order amount for a new trade given current cash."""
 
     return cash * BUY_RATE
+
+
+def entry_block_reason(has_position: bool, confidence: Optional[float], score_percent: Optional[float]) -> Optional[str]:
+    """Return a reason string if trade entry should be denied."""
+    if has_position:
+        return "ALREADY_IN_POSITION"
+    if confidence is not None and confidence < 0.7:
+        return "LOW_CONFIDENCE"
+    if score_percent is not None and score_percent < 75:
+        return "INSUFFICIENT_CONDITION_SCORE"
+    return None
 
 
 class PositionManager:

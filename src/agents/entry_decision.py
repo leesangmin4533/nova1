@@ -2,7 +2,7 @@ class EntryDecisionAgent:
     """Determine trade entry signals for various strategies."""
 
     def __init__(self):
-        pass
+        self.last_score_percent = 0.0
 
     def normalize_orderbook_strength(self, bids, asks):
         """Return normalized strength score from orderbook price-volume lists."""
@@ -13,10 +13,17 @@ class EntryDecisionAgent:
             return 0.0
         return (bid_strength - ask_strength) / total
 
-    def evaluate(self, strategy, chart_data, order_status, order_book=None):
-        """Return BUY, SELL, or HOLD signal or detailed dict for special strategy."""
+    def evaluate(self, strategy, chart_data, order_status, order_book=None, *, logger=None, symbol=None):
+        """Return BUY, SELL, or HOLD signal or detailed dict for special strategy.
+
+        When ``logger`` is provided, a ``condition_evaluation`` event will be written
+        with detailed condition scores and the overall satisfaction percentage.
+        The most recent percentage is stored in ``last_score_percent`` for external
+        use.
+        """
         name = strategy[0] if isinstance(strategy, tuple) else strategy
         if not chart_data or len(chart_data) < 20:
+            self.last_score_percent = 0.0
             return "HOLD"
 
         recent_close = chart_data[-1]
@@ -24,6 +31,32 @@ class EntryDecisionAgent:
         ma20 = sum(chart_data[-20:]) / 20
 
         rsi = self._calc_rsi(chart_data)
+
+        ma_10 = sum(chart_data[-10:]) / 10
+        ma_34 = sum(chart_data[-34:]) / 34 if len(chart_data) >= 34 else ma20
+
+        volatility = 0.0
+        if len(chart_data) >= 20:
+            mean20 = sum(chart_data[-20:]) / 20
+            var20 = sum((c - mean20) ** 2 for c in chart_data[-20:]) / 20
+            volatility = (var20 ** 0.5) / mean20 if mean20 else 0.0
+
+        condition_scores = {
+            "rsi_above_55": rsi > 55,
+            "ma_cross": ma_10 > ma_34,
+            "orderbook_bias_up": (order_book.get("bid_volume", 0) > order_book.get("ask_volume", 0)) if order_book else False,
+            "volatility_threshold": volatility < 0.02,
+        }
+
+        self.last_score_percent = sum(bool(v) for v in condition_scores.values()) / len(condition_scores) * 100
+
+        if logger is not None:
+            logger.log_event({
+                "type": "condition_evaluation",
+                "symbol": symbol,
+                "condition_scores": condition_scores,
+                "score_percent": self.last_score_percent,
+            })
 
         golden_cross = False
         if len(chart_data) >= 25:
@@ -49,6 +82,7 @@ class EntryDecisionAgent:
                 "signal": signal,
                 "confidence": score,
                 "strategy": "orderbook_weighted",
+                "score_percent": self.last_score_percent,
             }
 
         if name == "take_profit" and order_status and order_status.get("has_position"):

@@ -107,12 +107,21 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
         recent = get_recent_logs(logs, 10)
         bar_chart = generate_bar_chart(stats.get("strategy_returns", {}))
         line_chart = generate_line_chart(stats.get("cumulative_curve", []))
+        score_vals = [l.get("score_percent") for l in logs if l.get("type") == "condition_evaluation"]
+        avg_score = sum(score_vals) / len(score_vals) if score_vals else 0.0
+        reason_stats = {}
+        for l in logs:
+            if l.get("type") == "entry_denied":
+                r = l.get("reason")
+                reason_stats[r] = reason_stats.get(r, 0) + 1
         return render_template(
             "log.html",
             stats=stats,
             bar_chart=bar_chart,
             line_chart=line_chart,
             recent=recent,
+            average_score=avg_score,
+            reason_stats=reason_stats,
         )
 
     thread = threading.Thread(
