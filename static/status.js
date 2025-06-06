@@ -4,6 +4,12 @@ async function refresh() {
         const data = await res.json();
         document.getElementById('sentiment').innerText = data.sentiment || '-';
         document.getElementById('strategy').innerText = data.strategy || '-';
+        if (data.selected_strategy) {
+            const prob = (data.strategy_score * 100).toFixed(2);
+            document.getElementById('selected_strategy').innerText = `${data.selected_strategy} (${prob}%)`;
+        } else {
+            document.getElementById('selected_strategy').innerText = '-';
+        }
         document.getElementById('signal').innerText = data.signal || '-';
         document.getElementById('price').innerText = (data.price !== null && data.price !== undefined) ? data.price.toFixed(2) : '-';
         document.getElementById('balance').innerText = (data.balance !== null && data.balance !== undefined) ? data.balance.toFixed(2) : '-';
@@ -35,6 +41,22 @@ async function refresh() {
             elem.classList.toggle('negative', data.cumulative_return < 0);
         } else {
             document.getElementById('cumulative_return').innerText = '-';
+        }
+
+        if (data.weights && Object.keys(data.weights).length > 0) {
+            const labels = Object.keys(data.weights);
+            const values = labels.map(k => data.weights[k]);
+            const trace = {x: labels, y: values, type: 'bar'};
+            Plotly.react('weights_chart', [trace], {margin: {t: 20}});
+        }
+
+        if (data.bid_volume !== null && data.ask_volume !== null) {
+            const total = data.bid_volume + data.ask_volume;
+            const ratio = total ? ((data.bid_volume - data.ask_volume) / total) : 0;
+            document.getElementById('selected_strategy').title = `Orderbook score: ${ratio.toFixed(2)}`;
+            document.getElementById('orderbook_ratio').innerText = ratio.toFixed(2);
+            document.getElementById('orderbook_ratio').classList.toggle('positive', ratio > 0);
+            document.getElementById('orderbook_ratio').classList.toggle('negative', ratio < 0);
         }
     } catch (e) {
         console.error(e);
