@@ -4,12 +4,14 @@ class EntryDecisionAgent:
     def __init__(self):
         pass
 
-    def normalize_orderbook_strength(self, bid: float, ask: float) -> float:
-        """Return normalized strength score from orderbook volumes."""
-        total = bid + ask
+    def normalize_orderbook_strength(self, bids, asks):
+        """Return normalized strength score from orderbook price-volume lists."""
+        bid_strength = sum(b.get("price", 0) * b.get("volume", 0) for b in bids)
+        ask_strength = sum(a.get("price", 0) * a.get("volume", 0) for a in asks)
+        total = bid_strength + ask_strength
         if total == 0:
             return 0.0
-        return (bid - ask) / total
+        return (bid_strength - ask_strength) / total
 
     def evaluate(self, strategy, chart_data, order_status, order_book=None):
         """Return BUY, SELL, or HOLD signal or detailed dict for special strategy."""
@@ -35,16 +37,19 @@ class EntryDecisionAgent:
             return "BUY"
 
         if name == "orderbook_weighted" and order_book:
-            bid = order_book.get("bid_volume", 0)
-            ask = order_book.get("ask_volume", 0)
-            score = self.normalize_orderbook_strength(bid, ask)
+            bids = order_book.get("bids") or []
+            asks = order_book.get("asks") or []
+            score = self.normalize_orderbook_strength(bids[:10], asks[:10])
             signal = "HOLD"
-            if score > 0.6:
+            if score > 0.3:
                 signal = "BUY"
-            elif score < -0.6:
+            elif score < -0.3:
                 signal = "SELL"
-            weight = strategy[1].get("weight") if isinstance(strategy, tuple) else None
-            return {"signal": signal, "confidence": score, "weight": weight}
+            return {
+                "signal": signal,
+                "confidence": score,
+                "strategy": "orderbook_weighted",
+            }
 
         if name == "take_profit" and order_status and order_status.get("has_position"):
             if order_status.get("return_rate", 0) >= 0.05:
