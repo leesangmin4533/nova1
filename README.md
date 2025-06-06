@@ -22,8 +22,10 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Run the dashboard:
+Run the dashboard (a Flask status server will start on port 5000):
 
 ```bash
 python main.py
 ```
+
+You can view the current trading status by visiting `http://localhost:5000/status`.

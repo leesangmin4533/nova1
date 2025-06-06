@@ -8,6 +8,7 @@ from agents.logger_agent import LoggerAgent
 from agents.visualizer import VisualizerAgent
 from agents.learning_agent import LearningAgent
 from agents.utils import get_upbit_candles, get_upbit_orderbook
+from status_server import start_status_server
 
 
 SYMBOL = "KRW-BTC"
@@ -116,4 +117,5 @@ if __name__ == "__main__":
     import sys
 
     app = TradingApp(sys.argv)
+    start_status_server(app)
     sys.exit(app.exec_())
