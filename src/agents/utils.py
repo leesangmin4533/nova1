@@ -18,7 +18,7 @@ def get_upbit_candles(symbol: str = "KRW-BTC", count: int = 20) -> List[float]:
             closes = [candle["trade_price"] for candle in reversed(data)]
             return closes
         except requests.RequestException as exc:
-            raise RuntimeError(f"Failed to fetch candles: {exc}") from exc
+            raise RuntimeError(f"캔들 데이터를 가져오지 못했습니다: {exc}") from exc
 
 
 def get_upbit_orderbook(symbol: str = "KRW-BTC", depth: int = 10) -> Dict[str, Any]:
@@ -47,5 +47,5 @@ def get_upbit_orderbook(symbol: str = "KRW-BTC", depth: int = 10) -> Dict[str, A
             "ask_volume": ask_volume,
         }
     except requests.RequestException as exc:
-        raise RuntimeError(f"Failed to fetch orderbook: {exc}") from exc
+        raise RuntimeError(f"호가 정보를 가져오지 못했습니다: {exc}") from exc
 

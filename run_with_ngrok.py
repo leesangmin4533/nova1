@@ -19,7 +19,7 @@ def main():
         position_manager=app.position_manager, logger_agent=app.logger
     )
     public_url = ngrok.connect(5000)
-    print(f"\N{link symbol} External URL: {public_url}")
+    print(f"\N{link symbol} 외부 접속 주소: {public_url}")
 
     symbol = SYMBOL
     while True:

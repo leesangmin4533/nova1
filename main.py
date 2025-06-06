@@ -47,7 +47,7 @@ class TradingApp:
             candle_data = get_upbit_candles(SYMBOL, 20)
             order_book = get_upbit_orderbook(SYMBOL)
         except Exception as e:
-            print(f"Failed to fetch market data: {e}")
+            print(f"시장 데이터를 가져오지 못했습니다: {e}")
             return
 
         self.current_price = candle_data[-1]

@@ -1,45 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Log Analysis</title>
+    <title>로그 분석</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
 </head>
 <body>
 <section class="section">
 <div class="container">
-    <h1 class="title">Log Analysis</h1>
+    <h1 class="title">로그 분석</h1>
     <div class="content">
-        <p><strong>Total Trades:</strong> {{ stats.total_trades }}</p>
-        <p><strong>Average Return:</strong> {{ '{:.2%}'.format(stats.average_return) }}</p>
-        <p><strong>Cumulative Return:</strong> {{ '{:.2%}'.format(stats.cumulative_return) }}</p>
-        <p><strong>Max Return:</strong> {{ '{:.2%}'.format(stats.max_return) }}</p>
-        <p><strong>Min Return:</strong> {{ '{:.2%}'.format(stats.min_return) }}</p>
-        <p><strong>Avg. Condition Score:</strong> {{ '{:.1f}%'.format(average_score) }}</p>
+        <p><strong>총 거래수:</strong> {{ stats.total_trades }}</p>
+        <p><strong>평균 수익률:</strong> {{ '{:.2%}'.format(stats.average_return) }}</p>
+        <p><strong>누적 수익률:</strong> {{ '{:.2%}'.format(stats.cumulative_return) }}</p>
+        <p><strong>최대 수익률:</strong> {{ '{:.2%}'.format(stats.max_return) }}</p>
+        <p><strong>최소 수익률:</strong> {{ '{:.2%}'.format(stats.min_return) }}</p>
+        <p><strong>평균 조건 충족도:</strong> {{ '{:.1f}%'.format(average_score) }}</p>
     </div>
     <div class="columns">
         <div class="column">
             <figure class="image">
-                <img src="data:image/png;base64,{{ bar_chart }}" alt="Strategy Returns">
+                <img src="data:image/png;base64,{{ bar_chart }}" alt="전략별 수익률">
             </figure>
         </div>
         <div class="column">
             <figure class="image">
-                <img src="data:image/png;base64,{{ line_chart }}" alt="Cumulative Return">
+                <img src="data:image/png;base64,{{ line_chart }}" alt="누적 수익률">
             </figure>
         </div>
     </div>
-    <h2 class="subtitle">Entry Denial Reasons</h2>
+    <h2 class="subtitle">진입 거부 사유</h2>
     <ul>
         {% for reason, cnt in reason_stats.items() %}
         <li>{{ reason }}: {{ cnt }}</li>
         {% endfor %}
     </ul>
-    <h2 class="subtitle">Recent Logs</h2>
+    <h2 class="subtitle">최근 로그</h2>
     <table class="table is-striped is-fullwidth">
         <thead>
             <tr>
-                <th>Time</th><th>Agent</th><th>Action</th><th>Price</th><th>Symbol</th><th>Return</th>
+                <th>시간</th><th>에이전트</th><th>액션</th><th>가격</th><th>심볼</th><th>수익률</th>
             </tr>
         </thead>
         <tbody>
