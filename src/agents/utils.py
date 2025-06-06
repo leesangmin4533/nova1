@@ -1,6 +1,6 @@
 import requests
 import time
-from typing import List, Dict
+from typing import List, Dict, Any
 
 
 def get_upbit_candles(symbol: str = "KRW-BTC", count: int = 20) -> List[float]:
@@ -21,17 +21,31 @@ def get_upbit_candles(symbol: str = "KRW-BTC", count: int = 20) -> List[float]:
             raise RuntimeError(f"Failed to fetch candles: {exc}") from exc
 
 
-def get_upbit_orderbook(symbol: str = "KRW-BTC") -> Dict[str, float]:
-    """Fetch orderbook snapshot from Upbit."""
+def get_upbit_orderbook(symbol: str = "KRW-BTC", depth: int = 10) -> Dict[str, Any]:
+    """Fetch orderbook snapshot from Upbit with depth information."""
     url = "https://api.upbit.com/v1/orderbook"
     params = {"markets": symbol}
     try:
         response = requests.get(url, params=params, timeout=5)
         response.raise_for_status()
         data = response.json()[0]
-        bid_volume = sum(item["bid_size"] for item in data.get("orderbook_units", []))
-        ask_volume = sum(item["ask_size"] for item in data.get("orderbook_units", []))
-        return {"bid_volume": bid_volume, "ask_volume": ask_volume}
+        units = data.get("orderbook_units", [])[:depth]
+        bids = [
+            {"price": u["bid_price"], "volume": u["bid_size"]}
+            for u in units
+        ]
+        asks = [
+            {"price": u["ask_price"], "volume": u["ask_size"]}
+            for u in units
+        ]
+        bid_volume = sum(u["bid_size"] for u in units)
+        ask_volume = sum(u["ask_size"] for u in units)
+        return {
+            "bids": bids,
+            "asks": asks,
+            "bid_volume": bid_volume,
+            "ask_volume": ask_volume,
+        }
     except requests.RequestException as exc:
         raise RuntimeError(f"Failed to fetch orderbook: {exc}") from exc
 
