@@ -4,6 +4,13 @@ class EntryDecisionAgent:
     def __init__(self):
         self.last_score_percent = 0.0
         self.nearest_failed = None
+        self.failed_conditions = []
+        self.override_rules = {
+            "orderbook_bias_up": {
+                "score_threshold": 70,
+                "reason": "high_score_override",
+            }
+        }
 
     def normalize_orderbook_strength(self, bids, asks):
         """Return normalized strength score from orderbook price-volume lists."""
@@ -89,6 +96,7 @@ class EntryDecisionAgent:
         }
 
         failed_conditions = {k: v for k, v in condition_details.items() if not v["passed"]}
+        self.failed_conditions = list(failed_conditions)
         if failed_conditions:
             nearest_name, nearest_info = min(failed_conditions.items(), key=lambda x: abs(x[1]["diff"]))
             self.nearest_failed = {"condition": nearest_name, **nearest_info}
@@ -152,3 +160,19 @@ class EntryDecisionAgent:
             return 100.0
         rs = avg_gain / avg_loss
         return 100 - (100 / (1 + rs))
+
+    def decide_entry(self, signal, reason, score_percent):
+        """Return ``(allow, reason)`` applying override rules."""
+        override_reason = None
+        if signal == "BUY":
+            for cond, cfg in self.override_rules.items():
+                if score_percent >= cfg.get("score_threshold", 100) and cond in self.failed_conditions:
+                    override_reason = cfg.get("reason")
+                    break
+
+        if override_reason:
+            return True, override_reason
+
+        allow_entry = signal == "BUY" and reason is None
+        entry_reason = reason or "condition_failed"
+        return allow_entry, entry_reason

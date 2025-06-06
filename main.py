@@ -109,17 +109,9 @@ class TradingApp:
             if self.emotion_axis.in_cooldown() or self.emotion_axis.should_pause_for_greed(rsi):
                 reason = reason or "COOLDOWN"
 
-        if signal == "BUY" and reason is not None:
-            self.emotion_axis.record_result(False)
-            self.logger.log_event({
-                "type": "entry_denied",
-                "symbol": SYMBOL,
-                "reason": reason,
-                "confidence": confidence,
-                "score_percent": score_percent,
-            })
+        allow_entry, entry_reason = self.entry_agent.decide_entry(signal, reason, score_percent)
 
-        if signal == "BUY" and reason is None and can_enter_trade(self.positions):
+        if allow_entry and can_enter_trade(self.positions):
             order_amount = self.risk.calculate_order_amount(
                 self.balance, self.current_price, volatility
             )
@@ -143,6 +135,7 @@ class TradingApp:
                 "symbol": SYMBOL,
                 "confidence": confidence,
                 "score_percent": score_percent,
+                "reason": entry_reason,
             })
         elif signal == "SELL" and self.positions:
             self.emotion_axis.record_result(True)
@@ -164,8 +157,18 @@ class TradingApp:
             self.trade_history.append({"strategy": strategy, "return": return_rate})
             self.learning_agent.record_trade(strategy, return_rate)
         else:
+            if signal == "BUY":
+                self.emotion_axis.record_result(False)
             if signal == "HOLD":
                 self.emotion_axis.record_result(False)
+            if signal == "BUY":
+                self.logger.log_event({
+                    "type": "entry_denied",
+                    "symbol": SYMBOL,
+                    "reason": entry_reason,
+                    "confidence": confidence,
+                    "score_percent": score_percent,
+                })
 
         to_remove = []
         for pos in list(self.positions):
