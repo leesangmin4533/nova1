@@ -1,35 +1,30 @@
-from PyQt5 import QtWidgets
-
-
-class VisualizerAgent(QtWidgets.QWidget):
-    """Basic window to visualize agent states."""
+class VisualizerAgent:
+    """Store the latest state for the web dashboard."""
 
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Trading Agent Dashboard")
-        self.layout = QtWidgets.QVBoxLayout()
-        self.sentiment_label = QtWidgets.QLabel("Sentiment: NEUTRAL")
-        self.strategy_label = QtWidgets.QLabel("Strategy: None")
-        self.position_label = QtWidgets.QLabel("Position: None")
-        self.signal_label = QtWidgets.QLabel("Signal: HOLD")
-        for widget in [
-            self.sentiment_label,
-            self.strategy_label,
-            self.position_label,
-            self.signal_label,
-        ]:
-            self.layout.addWidget(widget)
-        self.setLayout(self.layout)
+        self.state = {
+            "sentiment": "NEUTRAL",
+            "strategy": None,
+            "position": None,
+            "signal": "HOLD",
+            "price": None,
+            "balance": 0.0,
+            "equity": 0.0,
+        }
 
-    def update_state(self, sentiment, strategy, position, signal):
-        self.sentiment_label.setText(f"Sentiment: {sentiment}")
-        self.strategy_label.setText(f"Strategy: {strategy}")
-        if isinstance(position, dict):
-            entry = position.get("entry_price")
-            rr = position.get("return_rate")
-            self.position_label.setText(
-                f"Position: entry {entry:.2f}, return {rr:.2%}"
-            )
-        else:
-            self.position_label.setText("Position: None")
-        self.signal_label.setText(f"Signal: {signal}")
+    def update_state(self, sentiment, strategy, position, signal, price, balance):
+        equity = balance
+        if position and isinstance(position, dict):
+            qty = position.get("quantity", 1.0)
+            equity += price * qty
+        self.state.update(
+            {
+                "sentiment": sentiment,
+                "strategy": strategy,
+                "position": position,
+                "signal": signal,
+                "price": price,
+                "balance": balance,
+                "equity": equity,
+            }
+        )
