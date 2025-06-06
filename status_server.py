@@ -16,6 +16,13 @@ state_store = {
     "price": None,
     "balance": 0.0,
     "equity": 0.0,
+    "weight": None,
+    "rsi": None,
+    "bb_score": None,
+    "ts_score": None,
+    "return_rate": None,
+    "cumulative_return": 0.0,
+    "last_trade_time": None,
 }
 
 
@@ -64,3 +71,4 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000):
     )
     thread.start()
     return thread
+
