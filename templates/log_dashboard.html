@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Analysis</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body>
+<section class="section">
+<div class="container">
+    <h1 class="title">Log Analysis</h1>
+    <div class="content">
+        <p><strong>Total Trades:</strong> {{ stats.total_trades }}</p>
+        <p><strong>Average Return:</strong> {{ '{:.2%}'.format(stats.average_return) }}</p>
+        <p><strong>Cumulative Return:</strong> {{ '{:.2%}'.format(stats.cumulative_return) }}</p>
+        <p><strong>Max Return:</strong> {{ '{:.2%}'.format(stats.max_return) }}</p>
+        <p><strong>Min Return:</strong> {{ '{:.2%}'.format(stats.min_return) }}</p>
+    </div>
+    <div class="columns">
+        <div class="column">
+            <figure class="image">
+                <img src="data:image/png;base64,{{ bar_chart }}" alt="Strategy Returns">
+            </figure>
+        </div>
+        <div class="column">
+            <figure class="image">
+                <img src="data:image/png;base64,{{ line_chart }}" alt="Cumulative Return">
+            </figure>
+        </div>
+    </div>
+    <h2 class="subtitle">Recent Logs</h2>
+    <table class="table is-striped is-fullwidth">
+        <thead>
+            <tr>
+                <th>Time</th><th>Agent</th><th>Action</th><th>Price</th><th>Symbol</th><th>Return</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in recent %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.agent }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.price }}</td>
+                <td>{{ log.symbol }}</td>
+                <td>{{ '{:.2%}'.format(log.return_rate) if log.return_rate is not none else '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</section>
+</body>
+</html>
