@@ -8,7 +8,8 @@ a simple web dashboard built using Flask. The agents demonstrate the following r
 - **EntryDecisionAgent**: decides whether to buy, sell, or hold.
 - **PositionManager**: evaluates open positions for exit conditions.
 - **LoggerAgent**: records agent activity to JSON files.
-- **DailyLogger**: appends daily success and failure entries in `NOVA_LOGS` on your Desktop.
+- **DailyLogger**: automatically creates a `NOVA_LOGS` folder on your Desktop and
+  appends daily success and failure entries when trades occur.
 - **Flask Status Server**: serves a web dashboard and JSON API.
 - **LearningAgent**: placeholder for future strategy learning.
 

@@ -17,6 +17,7 @@ from agents.position_manager import (
 )
 from agents.logger_agent import LoggerAgent
 from agents.learning_agent import LearningAgent
+from agents.daily_logger import DailyLogger
 from agents.utils import get_upbit_candles, get_upbit_orderbook
 from status_server import start_status_server, update_state
 from log_analyzer import load_logs, analyze_logs
@@ -34,6 +35,7 @@ class TradingApp:
         self.entry_agent = EntryDecisionAgent()
         self.position_manager = PositionManager()
         self.logger = LoggerAgent()
+        self.daily_logger = DailyLogger()
         self.learning_agent = LearningAgent()
         self.positions = []
         self.last_signal = "HOLD"
@@ -100,6 +102,7 @@ class TradingApp:
                 "confidence": confidence,
                 "score_percent": score_percent,
             })
+            self.daily_logger.log_failure("EntryDecisionAgent", reason)
 
         if signal == "BUY" and reason is None and can_enter_trade(self.positions):
             order_amount = calculate_order_amount(self.balance)
@@ -123,6 +126,13 @@ class TradingApp:
                 "confidence": confidence,
                 "score_percent": score_percent,
             })
+            self.daily_logger.log_success(
+                "EntryDecisionAgent",
+                "BUY",
+                price=self.current_price,
+                strategy=strategy,
+                return_rate=0.0,
+            )
         elif signal == "SELL" and self.positions:
             pos = self.positions.pop(0)
             return_rate = (
