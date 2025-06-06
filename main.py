@@ -1,6 +1,7 @@
 import time
 import os
 import sys
+from datetime import datetime
 
 # Ensure the src package is available for imports when running this file
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -18,6 +19,7 @@ from agents.risk_manager import RiskManager
 from agents.emotion_axis import EmotionAxis
 from agents.logger_agent import LoggerAgent
 from agents.learning_agent import LearningAgent
+from agents.missed_hold_tracker import track_failed_hold
 from agents.utils import get_upbit_candles, get_upbit_orderbook
 from status_server import start_status_server, update_state
 from log_analyzer import load_logs, analyze_logs
@@ -99,6 +101,13 @@ class TradingApp:
             confidence = None
         score_percent = self.entry_agent.last_score_percent
         self.last_signal = signal
+        decision_info = {
+            "timestamp": datetime.now().isoformat(),
+            "confidence": score_percent,
+            "action": signal,
+        }
+        if signal == "HOLD":
+            track_failed_hold(decision_info, self.current_price, SYMBOL)
 
         # update weights based on signal quality
         self.learning_agent.adjust_from_signal(strategy, score_percent, confidence)
