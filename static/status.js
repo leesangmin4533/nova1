@@ -13,9 +13,33 @@ async function refresh() {
         } else {
             document.getElementById('position').innerText = '-';
         }
+        document.getElementById('weight').innerText = (data.weight !== undefined && data.weight !== null) ? data.weight.toFixed(2) : '-';
+        document.getElementById('rsi').innerText = (data.rsi !== undefined && data.rsi !== null) ? data.rsi.toFixed(2) : '-';
+        document.getElementById('bb_score').innerText = data.bb_score !== undefined ? data.bb_score : '-';
+        document.getElementById('ts_score').innerText = data.ts_score !== undefined ? data.ts_score : '-';
+        if (data.return_rate !== null && data.return_rate !== undefined) {
+            const elem = document.getElementById('return_rate');
+            const val = (data.return_rate * 100).toFixed(2);
+            elem.innerText = val + '%';
+            elem.classList.toggle('positive', data.return_rate > 0);
+            elem.classList.toggle('negative', data.return_rate < 0);
+        } else {
+            document.getElementById('return_rate').innerText = '-';
+        }
+        document.getElementById('last_trade_time').innerText = data.last_trade_time || '-';
+        if (data.cumulative_return !== null && data.cumulative_return !== undefined) {
+            const elem = document.getElementById('cumulative_return');
+            const val = (data.cumulative_return * 100).toFixed(2);
+            elem.innerText = val + '%';
+            elem.classList.toggle('positive', data.cumulative_return > 0);
+            elem.classList.toggle('negative', data.cumulative_return < 0);
+        } else {
+            document.getElementById('cumulative_return').innerText = '-';
+        }
     } catch (e) {
         console.error(e);
     }
 }
 setInterval(refresh, 1000);
 refresh();
+

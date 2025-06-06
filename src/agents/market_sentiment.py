@@ -11,6 +11,9 @@ class MarketSentimentAgent:
 
     def __init__(self):
         self.state = "NEUTRAL"
+        self.rsi = 50.0
+        self.bb_score = 0
+        self.ts_score = 0
 
     def calc_rsi(self, closes: List[float], period: int = 20) -> float:
         """Return the Relative Strength Index (RSI) for the given closes.
@@ -63,6 +66,7 @@ class MarketSentimentAgent:
                 return self.state
 
         rsi = self.calc_rsi(candle_data, period=20)
+        self.rsi = rsi
 
         if len(candle_data) >= 20:
             ma = sum(candle_data[-20:]) / 20
@@ -74,6 +78,7 @@ class MarketSentimentAgent:
             bb_score = 1 if price > upper else -1 if price < lower else 0
         else:
             bb_score = 0
+        self.bb_score = bb_score
 
         ob_score = 0
         if order_book and isinstance(order_book, dict):
@@ -93,6 +98,7 @@ class MarketSentimentAgent:
                 ts_score = 1
             elif trade_strength < 0.9:
                 ts_score = -1
+        self.ts_score = ts_score
 
         score = 0
         if rsi > 70:

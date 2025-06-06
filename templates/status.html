@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Status Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
 <section class="section">
@@ -13,37 +14,79 @@
         <div class="column is-one-third">
             <div class="box has-text-centered">
                 <p class="heading">Sentiment</p>
-                <p id="sentiment" class="title">-</p>
+                <p id="sentiment" class="title card-value">-</p>
             </div>
         </div>
         <div class="column is-one-third">
             <div class="box has-text-centered">
                 <p class="heading">Strategy</p>
-                <p id="strategy" class="title">-</p>
+                <p id="strategy" class="title card-value">-</p>
             </div>
         </div>
         <div class="column is-one-third">
             <div class="box has-text-centered">
                 <p class="heading">Signal</p>
-                <p id="signal" class="title">-</p>
+                <p id="signal" class="title card-value">-</p>
             </div>
         </div>
         <div class="column is-one-third">
             <div class="box has-text-centered">
                 <p class="heading">Price</p>
-                <p id="price" class="title">-</p>
+                <p id="price" class="title card-value">-</p>
             </div>
         </div>
         <div class="column is-one-third">
             <div class="box has-text-centered">
                 <p class="heading">Balance</p>
-                <p id="balance" class="title">-</p>
+                <p id="balance" class="title card-value">-</p>
             </div>
         </div>
         <div class="column is-one-third">
             <div class="box has-text-centered">
                 <p class="heading">Position</p>
-                <p id="position" class="title">-</p>
+                <p id="position" class="title card-value">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Weight</p>
+                <p id="weight" class="title card-value">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">RSI</p>
+                <p id="rsi" class="title card-value">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Bollinger</p>
+                <p id="bb_score" class="title card-value">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Trade Strength</p>
+                <p id="ts_score" class="title card-value">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Return Rate</p>
+                <p id="return_rate" class="title card-value">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Last Trade</p>
+                <p id="last_trade_time" class="title card-value">-</p>
+            </div>
+        </div>
+        <div class="column is-one-third">
+            <div class="box has-text-centered">
+                <p class="heading">Cumulative</p>
+                <p id="cumulative_return" class="title card-value">-</p>
             </div>
         </div>
     </div>
