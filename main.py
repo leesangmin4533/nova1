@@ -50,7 +50,7 @@ class TradingApp:
         }
         if self.position:
             order_status["return_rate"] = (
-                current_price - self.position["entry_price"]
+                self.current_price - self.position["entry_price"]
             ) / self.position["entry_price"]
 
         signal = self.entry_agent.evaluate((strategy, params), candle_data, order_status)
