@@ -10,6 +10,10 @@ a simple web dashboard built using Flask. The agents demonstrate the following r
 - **LoggerAgent**: records agent activity to JSON files.
 - **Flask Status Server**: serves a web dashboard and JSON API.
 - **LearningAgent**: placeholder for future strategy learning.
+- **Real-time Charts**: price history and order book are plotted in the
+  dashboard using Plotly.
+- **Capital Management**: trading begins with 1,000,000 KRW of virtual
+  capital, uses 20% per entry, and limits simultaneous positions to five.
 
 ## Requirements
 
