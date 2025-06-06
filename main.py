@@ -11,7 +11,6 @@ from agents.entry_decision import EntryDecisionAgent
 from agents.position_manager import (
     PositionManager,
     can_enter_trade,
-    calculate_order_amount,
     INITIAL_CAPITAL,
     entry_block_reason,
 )
@@ -35,7 +34,7 @@ class TradingApp:
         self.strategy_selector = StrategySelector()
         self.entry_agent = EntryDecisionAgent()
         self.position_manager = PositionManager()
-        self.risk_manager = RiskManager()
+        self.risk = RiskManager(max_risk_pct=0.1)
         self.emotion_axis = EmotionAxis()
         self.logger = LoggerAgent()
         self.learning_agent = LearningAgent()
@@ -70,6 +69,7 @@ class TradingApp:
         ts_score = self.sentiment_agent.ts_score
 
         self.strategy_selector.update_scores(self.learning_agent.weights)
+        self.strategy_selector.update_market_phase(rsi, bb_score)
         strategy, params, score = self.strategy_selector.select(sentiment)
         weight = params.get("weight")
 
@@ -120,7 +120,9 @@ class TradingApp:
             })
 
         if signal == "BUY" and reason is None and can_enter_trade(self.positions):
-            order_amount = self.risk_manager.order_amount(self.balance, volatility)
+            order_amount = self.risk.calculate_order_amount(
+                self.balance, self.current_price, volatility
+            )
             if order_amount > 0:
                 qty = order_amount / self.current_price
                 self.balance -= order_amount
@@ -166,7 +168,22 @@ class TradingApp:
                 self.emotion_axis.record_result(False)
 
         to_remove = []
-        for pos in self.positions:
+        for pos in list(self.positions):
+            if self.risk.check_stop_loss(pos["entry_price"], self.current_price):
+                return_rate = (
+                    self.current_price - pos["entry_price"]
+                ) / pos["entry_price"]
+                self.balance += self.current_price * pos["quantity"]
+                self.positions.remove(pos)
+                self.logger.log_success(
+                    "RiskManager",
+                    "STOP_LOSS",
+                    price=self.current_price,
+                    strategy=strategy,
+                    return_rate=return_rate,
+                )
+                continue
+
             decision = self.position_manager.update(
                 pos, pos["entry_price"], self.current_price
             )
@@ -189,7 +206,8 @@ class TradingApp:
                 self.learning_agent.record_trade(strategy, return_rate)
                 to_remove.append(pos)
         for pos in to_remove:
-            self.positions.remove(pos)
+            if pos in self.positions:
+                self.positions.remove(pos)
 
         position_state = None
         return_rate = None
