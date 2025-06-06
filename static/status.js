@@ -68,41 +68,42 @@ async function refresh() {
         Plotly.react('priceChart', [{
           x: window.priceHistory.map(p => p.x),
           y: window.priceHistory.map(p => p.y),
+          type: 'scatter',
           mode: 'lines+markers',
           name: 'Price',
           line: { color: 'blue' }
         }], {
-          title: '실시간 시세 차트',
+          title: '실시간 시세',
           xaxis: { title: '시간' },
           yaxis: { title: '가격' }
         });
 
-        // 🏛️ 호가창 시각화
+        // 🏛️ 호가창 시각화 (세로 막대)
         const bids = data.bids?.slice(0, 10).reverse() || [];
         const asks = data.asks?.slice(0, 10) || [];
 
         Plotly.react('orderbookChart', [
           {
-            x: bids.map(b => b[1]),
             y: bids.map(b => b[0].toString()),
-            orientation: 'h',
-            name: '매수호가',
+            x: bids.map(b => b[1]),
             type: 'bar',
+            name: '매수',
+            orientation: 'h',
             marker: { color: 'green' }
           },
           {
-            x: asks.map(a => -a[1]),
             y: asks.map(a => a[0].toString()),
-            orientation: 'h',
-            name: '매도호가',
+            x: asks.map(a => a[1]),
             type: 'bar',
+            name: '매도',
+            orientation: 'h',
             marker: { color: 'red' }
           }
         ], {
-          title: '호가창 (상하 10개)',
-          barmode: 'overlay',
-          xaxis: { title: '거래량', zeroline: true },
-          yaxis: { title: '가격', autorange: 'reversed' }
+          title: '호가창 거래량',
+          barmode: 'relative',
+          xaxis: { title: '거래량' },
+          yaxis: { title: '가격', automargin: true }
         });
     } catch (e) {
         console.error(e);

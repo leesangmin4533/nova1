@@ -29,17 +29,50 @@ state_store = {
     "return_rate": None,
     "cumulative_return": 0.0,
     "last_trade_time": None,
+    "positions": [],
+    "bids": [],
+    "asks": [],
 }
 
 
 def update_state(**kwargs):
     """Merge ``kwargs`` into the global ``state_store`` and recompute equity."""
+    bids = kwargs.get("bids")
+    asks = kwargs.get("asks")
+
+    if bids is not None:
+        filtered = []
+        seen = set()
+        for price, vol in bids:
+            if not vol:
+                continue
+            key = (price, vol)
+            if key in seen:
+                continue
+            seen.add(key)
+            filtered.append([price, vol])
+        kwargs["bids"] = filtered
+
+    if asks is not None:
+        filtered = []
+        seen = set()
+        for price, vol in asks:
+            if not vol:
+                continue
+            key = (price, vol)
+            if key in seen:
+                continue
+            seen.add(key)
+            filtered.append([price, vol])
+        kwargs["asks"] = filtered
+
     state_store.update(kwargs)
     equity = state_store.get("balance", 0.0)
     price = state_store.get("price")
-    pos = state_store.get("position")
-    if pos and price is not None:
-        equity += price * pos.get("quantity", 1.0)
+    positions = state_store.get("positions", [])
+    if positions and price is not None:
+        for pos in positions:
+            equity += price * pos.get("quantity", 1.0)
     state_store["equity"] = equity
 
 
