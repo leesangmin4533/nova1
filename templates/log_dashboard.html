@@ -30,8 +30,8 @@
 </div>
 </section>
 <script>
-var returns = {{ stats.returns|tojson }};
-var cumulative = {{ stats.cumulative|tojson }};
+var returns = {{ returns|tojson }};
+var cumulative = {{ cumulative|tojson }};
 var x = [];
 for (let i = 0; i < returns.length; i++) { x.push(i + 1); }
 var bar = { x: x, y: returns, type: 'bar', name: 'Return' };

@@ -1,0 +1,8 @@
+{
+  "timestamp": "2024-01-01T00:30:00",
+  "agent": "EntryDecisionAgent",
+  "action": "SELL",
+  "price": 90,
+  "strategy": "momentum",
+  "return_rate": -0.1
+}

@@ -22,11 +22,14 @@ def start_status_server(trading_app, host="0.0.0.0", port=5000):
     @app.route("/log")
     def log_dashboard():
         logs = log_analyzer.load_logs()
-        stats = log_analyzer.compute_statistics(logs)
-        recent = logs[-10:]
+        stats = log_analyzer.analyze_logs(logs)
+        recent = log_analyzer.get_recent_logs(logs, 10)
+        returns, cumulative = log_analyzer.trade_returns(logs)
         return render_template(
             "log_dashboard.html",
             stats=stats,
+            returns=returns,
+            cumulative=cumulative,
             recent_logs=recent,
         )
 
