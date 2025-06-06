@@ -46,6 +46,15 @@ You can view the web dashboard at `http://localhost:5000/`.
 The server also exposes a JSON status API at `http://localhost:5000/api/status`.
 Log analysis is available at `http://localhost:5000/log`.
 
+For a lightweight view of the latest session logs stored in
+`~/Desktop/NOVA_LOGS`, you can run the standalone report server:
+
+```bash
+python report_server.py
+```
+This will start a Flask app on port `7860` with a `/report` endpoint displaying
+a simple summary.
+
 ## Disclaimer / 면책 조항
 
 **English:** This project is provided for demonstration and educational purposes only. It is not intended as financial advice or a solicitation to trade. Using this code for real trading is done at your own risk, and the authors disclaim all liability for any potential losses.
