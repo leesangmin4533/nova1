@@ -5,18 +5,15 @@ class LearningAgent:
         self.weights = {}
 
     def update(self, trade_history):
-        """Update strategy weights based on trade history."""
-        totals = {}
-        counts = {}
+        """Update strategy weights using EWMA of recent positive returns."""
+
+        alpha = 0.3
         for trade in trade_history:
             name = trade.get("strategy")
             ret = trade.get("return", 0)
-            totals[name] = totals.get(name, 0) + ret
-            counts[name] = counts.get(name, 0) + 1
+            if ret <= 0:
+                continue
+            old = self.weights.get(name, 0.0)
+            self.weights[name] = alpha * ret + (1 - alpha) * old
 
-        self.weights = {
-            name: totals[name] / counts[name]
-            for name in totals
-            if counts[name] > 0
-        }
         return self.weights

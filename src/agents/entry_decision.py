@@ -1,11 +1,18 @@
 class EntryDecisionAgent:
-    """Determine trade entry signals."""
+    """Determine trade entry signals for various strategies."""
 
     def __init__(self):
         pass
 
-    def evaluate(self, strategy, chart_data, order_status):
-        """Return BUY, SELL, or HOLD signal based on the strategy."""
+    def normalize_orderbook_strength(self, bid: float, ask: float) -> float:
+        """Return normalized strength score from orderbook volumes."""
+        total = bid + ask
+        if total == 0:
+            return 0.0
+        return (bid - ask) / total
+
+    def evaluate(self, strategy, chart_data, order_status, order_book=None):
+        """Return BUY, SELL, or HOLD signal or detailed dict for special strategy."""
         name = strategy[0] if isinstance(strategy, tuple) else strategy
         if not chart_data or len(chart_data) < 20:
             return "HOLD"
@@ -26,6 +33,18 @@ class EntryDecisionAgent:
                 return "BUY"
         if name == "reversal" and recent_close < ma5:
             return "BUY"
+
+        if name == "orderbook_weighted" and order_book:
+            bid = order_book.get("bid_volume", 0)
+            ask = order_book.get("ask_volume", 0)
+            score = self.normalize_orderbook_strength(bid, ask)
+            signal = "HOLD"
+            if score > 0.6:
+                signal = "BUY"
+            elif score < -0.6:
+                signal = "SELL"
+            weight = strategy[1].get("weight") if isinstance(strategy, tuple) else None
+            return {"signal": signal, "confidence": score, "weight": weight}
 
         if name == "take_profit" and order_status and order_status.get("has_position"):
             if order_status.get("return_rate", 0) >= 0.05:
