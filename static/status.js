@@ -1,3 +1,28 @@
+// UTC → 한국 시간 변환 함수
+function formatToKST(utcTimestamp) {
+    const date = new Date(utcTimestamp);
+    const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return kstDate.toLocaleString("ko-KR", { hour12: false, timeZone: "Asia/Seoul" });
+}
+
+// 포지션 수익률 갱신
+function updateReturnTable(positions, currentPrice) {
+    const body = document.querySelector('#returnTable tbody');
+    body.innerHTML = '';
+
+    positions.forEach(pos => {
+        const rate = ((currentPrice - pos.entry_price) / pos.entry_price * 100).toFixed(2);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${pos.symbol}</td>
+          <td>${pos.entry_price}</td>
+          <td>${currentPrice}</td>
+          <td style="color:${rate >= 0 ? 'green' : 'red'}">${rate}%</td>
+        `;
+        body.appendChild(row);
+    });
+}
+
 async function refresh() {
     try {
         const res = await fetch('/api/status');
@@ -76,28 +101,20 @@ async function refresh() {
         if (data.recent_trades) {
             data.recent_trades.slice(-10).forEach(trade => {
                 const item = document.createElement('li');
-                const t = new Date(trade.timestamp);
-                const kst = new Date(t.getTime() + 9 * 60 * 60 * 1000);
-                const s = kst.toISOString().replace('T', ' ').substring(0, 19);
-                item.textContent = `${s} - ${trade.action} @ ${trade.price} (${trade.strategy || ''})`;
-                item.classList.add('trade-flash');
+                item.textContent = `${formatToKST(trade.timestamp)} - ${trade.action} @ ${trade.price}`;
+                item.classList.add('trade-entry');
+                if (trade.action === 'BUY') item.classList.add('buy-highlight');
+                if (trade.action === 'SELL') item.classList.add('sell-highlight');
                 tradeList.appendChild(item);
-                setTimeout(() => item.classList.remove('trade-flash'), 1000);
             });
         }
 
         // 포지션별 수익률 테이블 갱신
-        const tbl = document.querySelector('#profitTable tbody');
-        tbl.innerHTML = '';
         if (data.positions && data.positions.length > 0 && data.price !== undefined) {
-            data.positions.forEach(pos => {
-                const pl = ((data.price - pos.entry_price) / pos.entry_price) * 100;
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${pos.entry_price}</td><td>${pos.quantity.toFixed(4)}</td><td>${pl.toFixed(2)}%</td>`;
-                row.classList.toggle('positive', pl > 0);
-                row.classList.toggle('negative', pl < 0);
-                tbl.appendChild(row);
-            });
+            updateReturnTable(data.positions, data.price);
+        } else {
+            const body = document.querySelector('#returnTable tbody');
+            if (body) body.innerHTML = '';
         }
 
         if (data.bid_volume !== null && data.ask_volume !== null) {
