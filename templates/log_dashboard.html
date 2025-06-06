@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+<section class="section">
+<div class="container">
+    <h1 class="title">Log Dashboard</h1>
+    <div id="chart"></div>
+    <table class="table is-striped">
+        <thead>
+        <tr><th>Timestamp</th><th>Agent</th><th>Action</th><th>Price</th><th>Return</th></tr>
+        </thead>
+        <tbody>
+        {% for log in recent_logs %}
+        <tr>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.agent }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.price or '-' }}</td>
+            <td>{{ log.return_rate if log.return_rate is not none else '-' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</section>
+<script>
+var returns = {{ stats.returns|tojson }};
+var cumulative = {{ stats.cumulative|tojson }};
+var x = [];
+for (let i = 0; i < returns.length; i++) { x.push(i + 1); }
+var bar = { x: x, y: returns, type: 'bar', name: 'Return' };
+var line = { x: x, y: cumulative, type: 'scatter', mode: 'lines', name: 'Cumulative' };
+Plotly.newPlot('chart', [bar, line]);
+</script>
+</body>
+</html>
