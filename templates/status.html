@@ -5,7 +5,6 @@
     <title>Status Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
@@ -102,12 +101,12 @@
     <div id="weights_chart" style="height:300px;"></div>
 
     <!-- 실시간 시세 차트 -->
-    <h3>📈 실시간 시세 차트</h3>
+    <h3>📈 실시간 시세</h3>
     <div id="priceChart" style="height:300px;"></div>
 
-    <!-- 호가창 시각화 -->
-    <h3>🏛️ 호가창 상태 (상하 10개)</h3>
-    <div id="orderbookChart" style="height:400px; margin-bottom: 30px;"></div>
+    <!-- 직관적 호가창 시각화 -->
+    <h3>🏛️ 실시간 호가창 (상/하 10개)</h3>
+    <div id="orderbookChart" style="height:500px; margin-bottom: 30px;"></div>
 </div>
 </section>
 <script src="{{ url_for('static', filename='status.js') }}"></script>

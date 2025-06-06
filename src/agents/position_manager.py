@@ -1,5 +1,29 @@
+"""Utilities for managing trading positions and capital."""
+
+# Initial capital for the trading system (in KRW)
+INITIAL_CAPITAL = 1_000_000
+
+# Maximum number of simultaneous open trades
+MAX_ACTIVE_TRADES = 5
+
+# Fraction of available cash used per trade
+BUY_RATE = 0.2
+
+
+def can_enter_trade(active_trades):
+    """Return ``True`` if a new trade can be opened."""
+
+    return len(active_trades) < MAX_ACTIVE_TRADES
+
+
+def calculate_order_amount(cash):
+    """Return the order amount for a new trade given current cash."""
+
+    return cash * BUY_RATE
+
+
 class PositionManager:
-    """Manage open positions."""
+    """Manage open positions and evaluate exit conditions."""
 
     def __init__(self):
         self.positions = []

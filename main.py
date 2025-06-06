@@ -8,7 +8,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from agents.market_sentiment import MarketSentimentAgent
 from agents.strategy_selector import StrategySelector
 from agents.entry_decision import EntryDecisionAgent
-from agents.position_manager import PositionManager
+from agents.position_manager import (
+    PositionManager,
+    can_enter_trade,
+    calculate_order_amount,
+    INITIAL_CAPITAL,
+)
 from agents.logger_agent import LoggerAgent
 from agents.learning_agent import LearningAgent
 from agents.utils import get_upbit_candles, get_upbit_orderbook
@@ -29,10 +34,10 @@ class TradingApp:
         self.position_manager = PositionManager()
         self.logger = LoggerAgent()
         self.learning_agent = LearningAgent()
-        self.position = None
+        self.positions = []
         self.last_signal = "HOLD"
         self.current_price = 0.0
-        self.balance = 1_000_000.0  # KRW starting balance
+        self.balance = float(INITIAL_CAPITAL)
         self.last_trade_time = None
         self.trade_history = []
 
@@ -56,13 +61,14 @@ class TradingApp:
         weight = params.get("weight")
 
         order_status = {
-            "has_position": self.position is not None,
+            "has_position": len(self.positions) > 0,
             "return_rate": 0.0,
         }
-        if self.position:
+        if self.positions:
+            first = self.positions[0]
             order_status["return_rate"] = (
-                self.current_price - self.position["entry_price"]
-            ) / self.position["entry_price"]
+                self.current_price - first["entry_price"]
+            ) / first["entry_price"]
 
         result = self.entry_agent.evaluate(
             (strategy, params), candle_data, order_status, order_book
@@ -75,9 +81,12 @@ class TradingApp:
             confidence = None
         self.last_signal = signal
 
-        if signal == "BUY" and self.position is None:
-            self.position = {"entry_price": self.current_price, "quantity": 1.0, "symbol": SYMBOL}
-            self.balance -= self.current_price
+        if signal == "BUY" and can_enter_trade(self.positions):
+            order_amount = calculate_order_amount(self.balance)
+            if order_amount > 0:
+                qty = order_amount / self.current_price
+                self.balance -= order_amount
+                self.positions.append({"entry_price": self.current_price, "quantity": qty, "symbol": SYMBOL})
             ts = self.logger.log(
                 "EntryDecisionAgent",
                 "BUY",
@@ -87,52 +96,56 @@ class TradingApp:
             )
             if ts:
                 self.last_trade_time = ts
-        elif signal == "SELL" and self.position is not None:
+        elif signal == "SELL" and self.positions:
+            pos = self.positions.pop(0)
             return_rate = (
-                self.current_price - self.position["entry_price"]
-            ) / self.position["entry_price"]
-            self.balance += self.current_price * self.position["quantity"]
+                self.current_price - pos["entry_price"]
+            ) / pos["entry_price"]
+            self.balance += self.current_price * pos["quantity"]
             ts = self.logger.log(
                 "EntryDecisionAgent",
                 "SELL",
                 price=self.current_price,
-                symbol=self.position["symbol"],
+                symbol=pos["symbol"],
                 return_rate=return_rate,
             )
             if ts:
                 self.last_trade_time = ts
             self.trade_history.append({"strategy": strategy, "return": return_rate})
-            self.position = None
 
-        if self.position:
+        to_remove = []
+        for pos in self.positions:
             decision = self.position_manager.update(
-                self.position, self.position["entry_price"], self.current_price
+                pos, pos["entry_price"], self.current_price
             )
             if decision == "CLOSE":
                 return_rate = (
-                    self.current_price - self.position["entry_price"]
-                ) / self.position["entry_price"]
-                self.balance += self.current_price * self.position["quantity"]
+                    self.current_price - pos["entry_price"]
+                ) / pos["entry_price"]
+                self.balance += self.current_price * pos["quantity"]
                 ts = self.logger.log(
                     "PositionManager",
                     "CLOSE",
                     price=self.current_price,
-                    symbol=self.position["symbol"],
+                    symbol=pos["symbol"],
                     return_rate=return_rate,
                 )
                 if ts:
                     self.last_trade_time = ts
                 self.trade_history.append({"strategy": strategy, "return": return_rate})
-                self.position = None
+                to_remove.append(pos)
+        for pos in to_remove:
+            self.positions.remove(pos)
 
         position_state = None
         return_rate = None
-        if self.position:
+        if self.positions:
+            pos = self.positions[0]
             return_rate = (
-                self.current_price - self.position["entry_price"]
-            ) / self.position["entry_price"]
+                self.current_price - pos["entry_price"]
+            ) / pos["entry_price"]
             position_state = {
-                "entry_price": self.position["entry_price"],
+                "entry_price": pos["entry_price"],
                 "return_rate": return_rate,
             }
 
@@ -141,6 +154,9 @@ class TradingApp:
         cumulative_return = stats.get("cumulative_return", 0.0)
 
         self.learning_agent.update(self.trade_history)
+        bids = [[b["price"], b["volume"]] for b in order_book.get("bids", []) if b.get("volume")]
+        asks = [[a["price"], a["volume"]] for a in order_book.get("asks", []) if a.get("volume")]
+
         update_state(
             sentiment=sentiment,
             strategy=strategy,
@@ -154,6 +170,9 @@ class TradingApp:
             weights=self.learning_agent.weights,
             bid_volume=order_book.get("bid_volume"),
             ask_volume=order_book.get("ask_volume"),
+            bids=bids,
+            asks=asks,
+            positions=self.positions,
             orderbook_score=confidence,
             rsi=rsi,
             bb_score=bb_score,
