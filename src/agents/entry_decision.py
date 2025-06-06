@@ -16,7 +16,10 @@ class EntryDecisionAgent:
 
         rsi = self._calc_rsi(chart_data)
 
-        golden_cross = ma5 > ma20 and chart_data[-6] <= sum(chart_data[-25:-5]) / 20
+        golden_cross = False
+        if len(chart_data) >= 25:
+            prev_ma20 = sum(chart_data[-21:-1]) / 20
+            golden_cross = ma5 > ma20 and chart_data[-6] <= prev_ma20
 
         if name in ["momentum", "trend_follow"]:
             if golden_cross and rsi > 55:
