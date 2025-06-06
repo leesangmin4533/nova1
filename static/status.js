@@ -68,7 +68,7 @@ async function refresh() {
         if (data.bid_volume !== null && data.ask_volume !== null) {
             const total = data.bid_volume + data.ask_volume;
             const ratio = total ? ((data.bid_volume - data.ask_volume) / total) : 0;
-            document.getElementById('selected_strategy').title = `Orderbook score: ${ratio.toFixed(2)}`;
+            document.getElementById('selected_strategy').title = `호가 점수: ${ratio.toFixed(2)}`;
             document.getElementById('orderbook_ratio').innerText = ratio.toFixed(2);
             document.getElementById('orderbook_ratio').classList.toggle('positive', ratio > 0);
             document.getElementById('orderbook_ratio').classList.toggle('negative', ratio < 0);
@@ -85,7 +85,7 @@ async function refresh() {
           y: window.priceHistory.map(p => p.y),
           type: 'scatter',
           mode: 'lines+markers',
-          name: 'Price',
+          name: '가격',
           line: { color: 'blue' }
         }], {
           title: '실시간 시세',
