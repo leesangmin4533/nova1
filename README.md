@@ -33,7 +33,8 @@ Run the dashboard (a Flask web server will start on port 5000):
 python main.py
 ```
 
-You can view the current trading status at `http://localhost:5000/`.
+You can view the web dashboard at `http://localhost:5000/`.
+The server also exposes a JSON status API at `http://localhost:5000/status`.
 
 ## Disclaimer / 면책 조항
 
