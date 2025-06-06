@@ -1,0 +1,8 @@
+{
+  "timestamp": "2024-01-01T00:00:00",
+  "agent": "EntryDecisionAgent",
+  "action": "BUY",
+  "price": 100,
+  "strategy": "trend_follow",
+  "return_rate": 0.0
+}
