@@ -8,21 +8,40 @@ from log_analyzer import (
     generate_line_chart,
 )
 
+state_store = {
+    "sentiment": "NEUTRAL",
+    "strategy": None,
+    "position": None,
+    "signal": "HOLD",
+    "price": None,
+    "balance": 0.0,
+    "equity": 0.0,
+}
 
-def start_status_server(trading_app, host="0.0.0.0", port=5000):
+
+def update_state(**kwargs):
+    """Merge ``kwargs`` into the global ``state_store`` and recompute equity."""
+    state_store.update(kwargs)
+    equity = state_store.get("balance", 0.0)
+    price = state_store.get("price")
+    pos = state_store.get("position")
+    if pos and price is not None:
+        equity += price * pos.get("quantity", 1.0)
+    state_store["equity"] = equity
+
+
+def start_status_server(host: str = "0.0.0.0", port: int = 5000):
     """Start a background Flask server exposing current trading status."""
 
     app = Flask(__name__, static_folder="static", template_folder="templates")
 
-    @app.route("/status")
-    def status():
-        if hasattr(trading_app, "visualizer"):
-            return jsonify(trading_app.visualizer.state)
-        return jsonify({})
+    @app.route("/api/status")
+    def api_status():
+        return jsonify(state_store)
 
     @app.route("/")
     def dashboard():
-        return render_template("dashboard.html")
+        return render_template("status.html")
 
     @app.route("/log")
     def log_view():
@@ -32,7 +51,7 @@ def start_status_server(trading_app, host="0.0.0.0", port=5000):
         bar_chart = generate_bar_chart(stats.get("strategy_returns", {}))
         line_chart = generate_line_chart(stats.get("cumulative_curve", []))
         return render_template(
-            "log_dashboard.html",
+            "log.html",
             stats=stats,
             bar_chart=bar_chart,
             line_chart=line_chart,

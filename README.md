@@ -8,7 +8,7 @@ a simple web dashboard built using Flask. The agents demonstrate the following r
 - **EntryDecisionAgent**: decides whether to buy, sell, or hold.
 - **PositionManager**: evaluates open positions for exit conditions.
 - **LoggerAgent**: records agent activity to JSON files.
-- **VisualizerAgent**: stores the latest state for the web dashboard.
+- **Flask Status Server**: serves a web dashboard and JSON API.
 - **LearningAgent**: placeholder for future strategy learning.
 
 ## Requirements
@@ -34,7 +34,8 @@ python main.py
 ```
 
 You can view the web dashboard at `http://localhost:5000/`.
-The server also exposes a JSON status API at `http://localhost:5000/status`.
+The server also exposes a JSON status API at `http://localhost:5000/api/status`.
+Log analysis is available at `http://localhost:5000/log`.
 
 ## Disclaimer / 면책 조항
 
