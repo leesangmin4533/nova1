@@ -12,21 +12,39 @@ class MarketSentimentAgent:
     def __init__(self):
         self.state = "NEUTRAL"
 
-    def _calc_rsi(self, closes: List[float], period: int = 20) -> float:
+    def calc_rsi(self, closes: List[float], period: int = 20) -> float:
+        """Return the Relative Strength Index (RSI) for the given closes.
+
+        If the number of closes is insufficient for the desired period, a
+        neutral value of ``50.0`` is returned. When the average loss is ``0``,
+        the function returns ``100.0`` as the RSI cannot be computed.
+
+        Args:
+            closes: Sequence of closing prices in chronological order.
+            period: Number of periods to use for the RSI calculation.
+
+        Returns:
+            Calculated RSI value in the range ``0.0`` to ``100.0``.
+        """
+
         if len(closes) < period + 1:
             return 50.0
-        gains = []
-        losses = []
+
+        gains: List[float] = []
+        losses: List[float] = []
         for i in range(1, period + 1):
             diff = closes[-i] - closes[-i - 1]
             if diff > 0:
                 gains.append(diff)
             else:
                 losses.append(abs(diff))
+
         avg_gain = sum(gains) / period
         avg_loss = sum(losses) / period
+
         if math.isclose(avg_loss, 0):
             return 100.0
+
         rs = avg_gain / avg_loss
         return 100 - (100 / (1 + rs))
 
@@ -44,7 +62,7 @@ class MarketSentimentAgent:
             except Exception:
                 return self.state
 
-        rsi = self._calc_rsi(candle_data, period=20)
+        rsi = self.calc_rsi(candle_data, period=20)
 
         if len(candle_data) >= 20:
             ma = sum(candle_data[-20:]) / 20
