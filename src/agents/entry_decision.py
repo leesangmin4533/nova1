@@ -3,6 +3,7 @@ class EntryDecisionAgent:
 
     def __init__(self):
         self.last_score_percent = 0.0
+        self.nearest_failed = None
 
     def normalize_orderbook_strength(self, bids, asks):
         """Return normalized strength score from orderbook price-volume lists."""
@@ -41,12 +42,58 @@ class EntryDecisionAgent:
             var20 = sum((c - mean20) ** 2 for c in chart_data[-20:]) / 20
             volatility = (var20 ** 0.5) / mean20 if mean20 else 0.0
 
+        golden_cross = False
+        if len(chart_data) >= 25:
+            prev_ma20 = sum(chart_data[-21:-1]) / 20
+            golden_cross = ma5 > ma20 and chart_data[-6] <= prev_ma20
+
         condition_scores = {
             "rsi_above_55": rsi > 55,
             "ma_cross": ma_10 > ma_34,
+            "golden_cross": golden_cross,
             "orderbook_bias_up": (order_book.get("bid_volume", 0) > order_book.get("ask_volume", 0)) if order_book else False,
             "volatility_threshold": volatility < 0.02,
         }
+
+        condition_details = {
+            "rsi_above_55": {
+                "value": rsi,
+                "threshold": 55,
+                "diff": rsi - 55,
+                "passed": rsi > 55,
+            },
+            "ma_cross": {
+                "value": ma_10 - ma_34,
+                "threshold": 0,
+                "diff": ma_10 - ma_34,
+                "passed": ma_10 > ma_34,
+            },
+            "golden_cross": {
+                "value": ma5 - ma20,
+                "threshold": 0,
+                "diff": ma5 - ma20,
+                "passed": golden_cross,
+            },
+            "orderbook_bias_up": {
+                "value": (order_book.get("bid_volume", 0) - order_book.get("ask_volume", 0)) if order_book else None,
+                "threshold": 0,
+                "diff": (order_book.get("bid_volume", 0) - order_book.get("ask_volume", 0)) if order_book else float("inf"),
+                "passed": (order_book.get("bid_volume", 0) > order_book.get("ask_volume", 0)) if order_book else False,
+            },
+            "volatility_threshold": {
+                "value": volatility,
+                "threshold": 0.02,
+                "diff": volatility - 0.02,
+                "passed": volatility < 0.02,
+            },
+        }
+
+        failed_conditions = {k: v for k, v in condition_details.items() if not v["passed"]}
+        if failed_conditions:
+            nearest_name, nearest_info = min(failed_conditions.items(), key=lambda x: abs(x[1]["diff"]))
+            self.nearest_failed = {"condition": nearest_name, **nearest_info}
+        else:
+            self.nearest_failed = None
 
         self.last_score_percent = sum(bool(v) for v in condition_scores.values()) / len(condition_scores) * 100
 
@@ -55,13 +102,10 @@ class EntryDecisionAgent:
                 "type": "condition_evaluation",
                 "symbol": symbol,
                 "condition_scores": condition_scores,
+                "condition_details": condition_details,
+                "nearest_failed": self.nearest_failed,
                 "score_percent": self.last_score_percent,
             })
-
-        golden_cross = False
-        if len(chart_data) >= 25:
-            prev_ma20 = sum(chart_data[-21:-1]) / 20
-            golden_cross = ma5 > ma20 and chart_data[-6] <= prev_ma20
 
         if name in ["momentum", "trend_follow"]:
             if golden_cross and rsi > 55:

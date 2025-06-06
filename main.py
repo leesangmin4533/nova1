@@ -206,6 +206,7 @@ class TradingApp:
             rsi=rsi,
             bb_score=bb_score,
             ts_score=ts_score,
+            nearest_failed=self.entry_agent.nearest_failed,
             return_rate=return_rate,
             cumulative_return=cumulative_return,
             last_trade_time=self.last_trade_time,
@@ -229,6 +230,7 @@ if __name__ == "__main__":
             ask_volume=orderbook.get("ask_volume"),
             buy_count=app.position_manager.total_buys,
             sell_count=app.position_manager.total_sells,
+            nearest_failed=app.entry_agent.nearest_failed,
         )
         app.loop()
         time.sleep(2)
