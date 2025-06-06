@@ -50,6 +50,21 @@ async function refresh() {
             Plotly.react('weights_chart', [trace], {margin: {t: 20}});
         }
 
+        // 매수/매도 횟수 표시
+        document.getElementById('buyCount').textContent = data.buy_count || 0;
+        document.getElementById('sellCount').textContent = data.sell_count || 0;
+
+        // 거래 내역 표시
+        const tradeList = document.getElementById('tradeList');
+        tradeList.innerHTML = '';
+        if (data.recent_trades) {
+            data.recent_trades.slice(-10).forEach(trade => {
+                const item = document.createElement('li');
+                item.textContent = `${trade.timestamp} - ${trade.action} @ ${trade.price} (${trade.strategy || ''})`;
+                tradeList.appendChild(item);
+            });
+        }
+
         if (data.bid_volume !== null && data.ask_volume !== null) {
             const total = data.bid_volume + data.ask_volume;
             const ratio = total ? ((data.bid_volume - data.ask_volume) / total) : 0;
@@ -111,4 +126,9 @@ async function refresh() {
 }
 setInterval(refresh, 1000);
 refresh();
+
+function toggleTradeLog() {
+    const log = document.getElementById('tradeLog');
+    log.style.display = (log.style.display === 'none') ? 'block' : 'none';
+}
 

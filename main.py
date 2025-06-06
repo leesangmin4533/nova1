@@ -87,6 +87,7 @@ class TradingApp:
                 qty = order_amount / self.current_price
                 self.balance -= order_amount
                 self.positions.append({"entry_price": self.current_price, "quantity": qty, "symbol": SYMBOL})
+            self.position_manager.record_trade("BUY")
             ts = self.logger.log(
                 "EntryDecisionAgent",
                 "BUY",
@@ -102,6 +103,7 @@ class TradingApp:
                 self.current_price - pos["entry_price"]
             ) / pos["entry_price"]
             self.balance += self.current_price * pos["quantity"]
+            self.position_manager.record_trade("SELL")
             ts = self.logger.log(
                 "EntryDecisionAgent",
                 "SELL",
@@ -123,6 +125,7 @@ class TradingApp:
                     self.current_price - pos["entry_price"]
                 ) / pos["entry_price"]
                 self.balance += self.current_price * pos["quantity"]
+                self.position_manager.record_trade("SELL")
                 ts = self.logger.log(
                     "PositionManager",
                     "CLOSE",
@@ -180,6 +183,8 @@ class TradingApp:
             return_rate=return_rate,
             cumulative_return=cumulative_return,
             last_trade_time=self.last_trade_time,
+            buy_count=self.position_manager.total_buys,
+            sell_count=self.position_manager.total_sells,
         )
 
 
@@ -187,8 +192,18 @@ if __name__ == "__main__":
     app = TradingApp()
     # Launch the Flask status server in a background daemon thread so
     # that the trading loop can run uninterrupted.
-    server_thread = start_status_server()
+    server_thread = start_status_server(position_manager=app.position_manager, logger_agent=app.logger)
+    symbol = SYMBOL
     while True:
+        orderbook = get_upbit_orderbook(symbol)
+        update_state(
+            bids=[[b["price"], b["volume"]] for b in orderbook.get("bids", []) if b.get("volume")],
+            asks=[[a["price"], a["volume"]] for a in orderbook.get("asks", []) if a.get("volume")],
+            bid_volume=orderbook.get("bid_volume"),
+            ask_volume=orderbook.get("ask_volume"),
+            buy_count=app.position_manager.total_buys,
+            sell_count=app.position_manager.total_sells,
+        )
         app.loop()
-        time.sleep(60)
+        time.sleep(2)
 

@@ -27,6 +27,15 @@ class PositionManager:
 
     def __init__(self):
         self.positions = []
+        self.total_buys = 0
+        self.total_sells = 0
+
+    def record_trade(self, action: str) -> None:
+        """Record a buy or sell trade for analytics."""
+        if action == "BUY":
+            self.total_buys += 1
+        elif action == "SELL":
+            self.total_sells += 1
 
     def update(self, position, entry_price, current_price):
         """Return CLOSE if exit conditions are met."""
