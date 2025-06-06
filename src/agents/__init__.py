@@ -5,6 +5,7 @@ from .position_manager import PositionManager
 from .logger_agent import LoggerAgent
 from .learning_agent import LearningAgent
 from .daily_logger import DailyLogger
+from .session_logger import SessionLogger
 
 __all__ = [
     'MarketSentimentAgent',
@@ -12,6 +13,7 @@ __all__ = [
     'EntryDecisionAgent',
     'PositionManager',
     'LoggerAgent',
+    'SessionLogger',
     'LearningAgent',
     'DailyLogger',
 ]
