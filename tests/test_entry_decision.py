@@ -52,3 +52,11 @@ def test_nearest_failed_condition():
     assert nf["passed"] is False
     assert nf["diff"] == pytest.approx(-0.83, abs=0.1)
 
+
+def test_decide_entry_override():
+    agent = EntryDecisionAgent()
+    agent.failed_conditions = ["orderbook_bias_up"]
+    allow, reason = agent.decide_entry("BUY", "INSUFFICIENT_CONDITION_SCORE", 72)
+    assert allow is True
+    assert reason == "high_score_override"
+
