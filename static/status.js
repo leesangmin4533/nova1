@@ -41,7 +41,14 @@ async function refresh() {
         } else {
             document.getElementById('return_rate').innerText = '-';
         }
-        document.getElementById('last_trade_time').innerText = data.last_trade_time || '-';
+        if (data.last_trade_time) {
+            const t = new Date(data.last_trade_time);
+            const kst = new Date(t.getTime() + 9 * 60 * 60 * 1000);
+            const s = kst.toISOString().replace('T', ' ').substring(0, 19);
+            document.getElementById('last_trade_time').innerText = s;
+        } else {
+            document.getElementById('last_trade_time').innerText = '-';
+        }
         if (data.cumulative_return !== null && data.cumulative_return !== undefined) {
             const elem = document.getElementById('cumulative_return');
             const val = (data.cumulative_return * 100).toFixed(2);
@@ -69,8 +76,27 @@ async function refresh() {
         if (data.recent_trades) {
             data.recent_trades.slice(-10).forEach(trade => {
                 const item = document.createElement('li');
-                item.textContent = `${trade.timestamp} - ${trade.action} @ ${trade.price} (${trade.strategy || ''})`;
+                const t = new Date(trade.timestamp);
+                const kst = new Date(t.getTime() + 9 * 60 * 60 * 1000);
+                const s = kst.toISOString().replace('T', ' ').substring(0, 19);
+                item.textContent = `${s} - ${trade.action} @ ${trade.price} (${trade.strategy || ''})`;
+                item.classList.add('trade-flash');
                 tradeList.appendChild(item);
+                setTimeout(() => item.classList.remove('trade-flash'), 1000);
+            });
+        }
+
+        // 포지션별 수익률 테이블 갱신
+        const tbl = document.querySelector('#profitTable tbody');
+        tbl.innerHTML = '';
+        if (data.positions && data.positions.length > 0 && data.price !== undefined) {
+            data.positions.forEach(pos => {
+                const pl = ((data.price - pos.entry_price) / pos.entry_price) * 100;
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${pos.entry_price}</td><td>${pos.quantity.toFixed(4)}</td><td>${pl.toFixed(2)}%</td>`;
+                row.classList.toggle('positive', pl > 0);
+                row.classList.toggle('negative', pl < 0);
+                tbl.appendChild(row);
             });
         }
 

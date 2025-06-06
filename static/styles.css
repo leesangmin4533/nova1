@@ -2,4 +2,11 @@
 .card-value{font-size:2rem;font-weight:bold;}
 .positive{color:#1b9c1b;}
 .negative{color:#c0392b;}
+.trade-flash{
+  animation: flash-bg 1s ease-in-out;
+}
+@keyframes flash-bg{
+  from{background-color:#ffeaa7;}
+  to{background-color:transparent;}
+}
 

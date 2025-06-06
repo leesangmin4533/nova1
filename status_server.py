@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template
 import threading
+from datetime import datetime, timedelta
 from log_analyzer import (
     load_logs,
     analyze_logs,
@@ -105,7 +106,17 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
     def log_view():
         logs = load_logs("log")
         stats = analyze_logs(logs)
-        recent = get_recent_logs(logs, 10)
+        recent = []
+        for l in get_recent_logs(logs, 10):
+            ts = l.get("timestamp")
+            try:
+                dt = datetime.fromisoformat(ts)
+                kst = dt + timedelta(hours=9)
+                l = dict(l)
+                l["timestamp"] = kst.strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                pass
+            recent.append(l)
         bar_chart = generate_bar_chart(stats.get("strategy_returns", {}))
         line_chart = generate_line_chart(stats.get("cumulative_curve", []))
         score_vals = [l.get("score_percent") for l in logs if l.get("type") == "condition_evaluation"]
