@@ -20,9 +20,11 @@ from agents.emotion_axis import EmotionAxis
 from agents.logger_agent import LoggerAgent
 from agents.learning_agent import LearningAgent
 from agents.missed_hold_tracker import track_failed_hold
+from agents.human_compare import HumanCompareAgent
 from agents.utils import get_upbit_candles, get_upbit_orderbook
 from status_server import start_status_server, update_state
 from log_analyzer import load_logs, analyze_logs
+from version import STRATEGY_VERSION
 
 
 SYMBOL = "KRW-BTC"
@@ -40,6 +42,7 @@ class TradingApp:
         self.emotion_axis = EmotionAxis()
         self.logger = LoggerAgent()
         self.learning_agent = LearningAgent()
+        self.human_compare = HumanCompareAgent()
         self.positions = []
         self.last_signal = "HOLD"
         self.current_price = 0.0
@@ -117,6 +120,18 @@ class TradingApp:
             reason = entry_block_reason(len(self.positions) > 0, confidence, score_percent)
             if self.emotion_axis.in_cooldown() or self.emotion_axis.should_pause_for_greed(rsi):
                 reason = reason or "COOLDOWN"
+
+        human_action = self.human_compare.predict(rsi)
+        score_vs_human = self.human_compare.score_vs_human(signal, human_action)
+        self.logger.log_judgment(
+            action=signal,
+            reason=reason,
+            indicators={"rsi": rsi, "bb_score": bb_score, "ts_score": ts_score},
+            market_emotion=sentiment,
+            human_likely_action=human_action,
+            score_vs_human=score_vs_human,
+            strategy_version=STRATEGY_VERSION,
+        )
 
         allow_entry, entry_reason = self.entry_agent.decide_entry(signal, reason, score_percent)
 

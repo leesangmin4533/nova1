@@ -28,6 +28,8 @@ class LoggerAgent:
         self.log_dir = Path(log_dir) if log_dir else LOG_DIR
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.last_log = None
+        self.judgment_dir = self.log_dir / "판단로그"
+        self.judgment_dir.mkdir(parents=True, exist_ok=True)
 
     def log_event(self, data: dict) -> str:
         """Write an arbitrary event dictionary to a JSON file."""
@@ -104,4 +106,39 @@ class LoggerAgent:
             if l.get("action") in {"BUY", "SELL", "CLOSE"}
         ]
         return trades[-limit:]
+
+    # ------------------------------------------------------------------
+    def _judgment_file_for_today(self) -> Path:
+        date_str = datetime.now().strftime("%Y%m%d")
+        return self.judgment_dir / f"{date_str}_log.json"
+
+    def log_judgment(
+        self,
+        *,
+        action: str,
+        reason: str | None,
+        indicators: dict,
+        market_emotion: str,
+        human_likely_action: str,
+        score_vs_human: int,
+        strategy_version: str,
+        result_after_5min: float | None = None,
+        result_after_30min: float | None = None,
+    ) -> None:
+        entry = {
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "action": action,
+            "reason": reason,
+            "indicators": indicators,
+            "market_emotion": market_emotion,
+            "human_likely_action": human_likely_action,
+            "score_vs_human": score_vs_human,
+            "strategy_version": strategy_version,
+            "result_after_5min": result_after_5min,
+            "result_after_30min": result_after_30min,
+        }
+
+        path = self._judgment_file_for_today()
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
