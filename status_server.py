@@ -64,6 +64,7 @@ state_store = {
     "buy_count": 0,
     "sell_count": 0,
     "theme": load_ui_config().get("theme", "Dark Insight"),
+    "decision": {},
 }
 
 
@@ -143,21 +144,15 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
 
     @app.route("/api/decision")
     def api_decision():
-        decision_path = Path(r"C:/Users/kanur/log/판단/latest_decision.json")
-        news_path = Path(r"C:/Users/kanur/log/뉴스반영/latest_news.json")
-        data = {}
-        try:
-            if decision_path.exists():
-                with open(decision_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-        except Exception:
-            data = {}
-        try:
-            if news_path.exists():
-                with open(news_path, "r", encoding="utf-8") as f:
-                    data["news"] = json.load(f)
-        except Exception:
-            pass
+        data = state_store.get("decision", {})
+        if not data:
+            decision_path = Path(r"C:/Users/kanur/log/판단/latest_decision.json")
+            try:
+                if decision_path.exists():
+                    with open(decision_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+            except Exception:
+                data = {}
         return jsonify(data)
 
     @app.route("/log")

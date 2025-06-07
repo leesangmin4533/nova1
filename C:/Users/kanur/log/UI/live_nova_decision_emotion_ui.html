@@ -42,68 +42,30 @@
 <body>
 <div class="wrapper">
   <div class="card" tabindex="0">
-    <div id="marketEmotion" class="section">-</div>
-    <div id="humanVsNova" class="section">-</div>
+    <div id="market-emotion" class="section">-</div>
+    <div id="action" class="section">-</div>
+    <div id="reason" class="section">-</div>
     <div id="score" class="section">-</div>
-    <div id="history" class="section timeline">-</div>
-    <div id="strategy" class="section">-</div>
+    <div id="log" class="section timeline">-</div>
   </div>
 </div>
 <script>
-const fs = require ? require('fs') : null;
-const path = require ? require('path') : null;
-const configPath = 'C:/Users/kanur/log/설정/ui_config.json';
-const decisionPath = 'C:/Users/kanur/log/판단/latest_decision.json';
-const newsPath = 'C:/Users/kanur/log/뉴스반영/latest_news.json';
-let watchInterval = 2000;
-let lastDecisionTime = 0;
-let lastNewsTime = 0;
-let historyItems = [];
-function loadConfig() {
-  if(!fs) return;
-  try {
-    const cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    if(cfg.watch_interval_seconds) watchInterval = cfg.watch_interval_seconds * 1000;
-  } catch(e) {}
+function fetchDecision() {
+  fetch('/api/decision')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('market-emotion').textContent = data.classified_emotion ?? '-';
+      document.getElementById('action').textContent = data.action ?? '-';
+      document.getElementById('reason').textContent = data.reason ?? '-';
+      document.getElementById('score').textContent = data.score_vs_human ?? '-';
+      document.getElementById('log').textContent = `${data.time ?? ''} | ${data.action ?? ''} | ${data.reason ?? ''}`;
+      document.querySelector('.card').classList.add('fade-pulse');
+      setTimeout(()=>document.querySelector('.card').classList.remove('fade-pulse'),600);
+    })
+    .catch(err => console.error('NOVA 판단 정보 수신 실패:', err));
 }
-function readJson(p) {
-  try { return JSON.parse(fs.readFileSync(p, 'utf-8')); } catch(e) { return null; }
-}
-function updateUI(data) {
-  const emo = document.getElementById('marketEmotion');
-  const cmp = document.getElementById('humanVsNova');
-  const score = document.getElementById('score');
-  const hist = document.getElementById('history');
-  const strat = document.getElementById('strategy');
-  emo.textContent = data.emotion ? `${data.emotion} (${data.emotion_score ?? ''})`.trim() : '-';
-  cmp.textContent = data.human_judgement || data.nova_judgement ? `인간: ${data.human_judgement ?? '-'} / NOVA: ${data.nova_judgement ?? '-'}` : '-';
-  score.textContent = data.judgement_score !== undefined && data.judgement_score !== null ? `판단력: ${data.judgement_score}` : '-';
-  if(data.reason){ historyItems.unshift(`${data.time || ''} - ${data.reason}`); }
-  historyItems = historyItems.slice(0, (data.max_log_items || 3));
-  hist.innerHTML = historyItems.length ? historyItems.map(h=>`<div>${h}</div>`).join('') : '-';
-  strat.textContent = data.strategy_update || '-';
-  document.querySelector('.card').classList.add('fade-pulse');
-  setTimeout(()=>document.querySelector('.card').classList.remove('fade-pulse'),600);
-}
-function checkUpdates() {
-  if(!fs) return;
-  try {
-    const ds = fs.statSync(decisionPath).mtimeMs;
-    if(ds !== lastDecisionTime) {
-      lastDecisionTime = ds;
-      const data = readJson(decisionPath) || {};
-      const news = (fs.existsSync(newsPath)) ? readJson(newsPath) : {};
-      if(news && typeof news.emotion_shift !== 'undefined') {
-        const b = document.body.style;
-        b.background = `linear-gradient(${news.emotion_shift}, ${news.emotion_shift2 || '#1b263b'})`;
-      }
-      updateUI({...data, ...(news||{})});
-    }
-  } catch(e) {}
-}
-loadConfig();
-setInterval(checkUpdates, watchInterval);
-checkUpdates();
+fetchDecision();
+setInterval(fetchDecision, 2000);
 </script>
 </body>
 </html>

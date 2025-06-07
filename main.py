@@ -23,6 +23,8 @@ from agents.missed_hold_tracker import track_failed_hold
 from agents.human_compare import HumanCompareAgent
 from agents.utils import get_upbit_candles, get_upbit_orderbook
 from status_server import start_status_server, update_state
+import json
+from pathlib import Path
 from log_analyzer import load_logs, analyze_logs
 from version import STRATEGY_VERSION
 
@@ -145,6 +147,24 @@ class TradingApp:
             strategy_version=STRATEGY_VERSION,
             conflict_analysis=self.entry_agent.last_conflict,
         )
+
+        decision_data = {
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "action": signal,
+            "reason": reason,
+            "human_likely_action": human_action,
+            "score_vs_human": score_vs_human,
+            "classified_emotion": classified_emotion,
+            "market_emotion_index": emotion_index,
+        }
+        update_state(decision=decision_data)
+        try:
+            p = Path(r"C:/Users/kanur/log/판단/latest_decision.json")
+            p.parent.mkdir(parents=True, exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                json.dump(decision_data, f, ensure_ascii=False)
+        except Exception:
+            pass
 
         allow_entry, entry_reason = self.entry_agent.decide_entry(signal, reason, score_percent)
 
