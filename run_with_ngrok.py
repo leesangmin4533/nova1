@@ -15,7 +15,7 @@ from agents.utils import get_upbit_orderbook
 
 def main():
     app = TradingApp()
-    server_thread = start_status_server(
+    start_status_server(
         position_manager=app.position_manager, logger_agent=app.logger
     )
     public_url = ngrok.connect(5000)
