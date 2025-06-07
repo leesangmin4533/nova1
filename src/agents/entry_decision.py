@@ -30,7 +30,7 @@ class EntryDecisionAgent:
             return 0.0
         return (bid_strength - ask_strength) / total
 
-    def evaluate(self, strategy, chart_data, order_status, order_book=None, *, logger=None, symbol=None):
+    def evaluate(self, strategy, chart_data, order_status, order_book=None, *, logger=None, symbol=None, emotion_index=None):
         """Return BUY, SELL, or HOLD signal or detailed dict for special strategy.
 
         When ``logger`` is provided, a ``condition_evaluation`` event will be written
@@ -66,6 +66,8 @@ class EntryDecisionAgent:
         rsi_threshold = 55
         if self.adjuster.active:
             rsi_threshold += self.adjuster.adjustments.get("rsi_offset", 0)
+        if emotion_index is not None:
+            rsi_threshold += emotion_index * 5
 
         condition_scores = {
             "rsi_above_55": rsi > rsi_threshold,
@@ -120,6 +122,8 @@ class EntryDecisionAgent:
         if self.adjuster.active:
             factor = 1 + self.adjuster.adjustments.get("decision_sensitivity", 0.0)
             self.last_score_percent *= factor
+        if emotion_index is not None:
+            self.last_score_percent *= 1 + emotion_index * 0.1
         if failed_conditions:
             self.scorer.tune_weights(failed_conditions.keys())
 

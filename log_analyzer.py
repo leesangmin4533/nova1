@@ -4,6 +4,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 from typing import List, Dict, Tuple
+from datetime import datetime
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -160,4 +161,57 @@ def generate_line_chart(curve: List[Tuple[str, float]]) -> str:
     plt.close(fig)
     buf.seek(0)
     return base64.b64encode(buf.read()).decode()
+
+
+def generate_accuracy_report(judge_log: str, output_dir: str = r"C:\Users\kanur\log\피드백", adjustments: dict | None = None) -> str:
+    """Create a trading accuracy report from a judgment log file."""
+    path = Path(judge_log)
+    if not path.is_file():
+        raise FileNotFoundError(judge_log)
+    entries = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+
+    def _adj_text(adjs: dict | None) -> str:
+        if not adjs:
+            return ""
+        rsi = adjs.get("rsi_offset", 0)
+        sen = adjs.get("decision_sensitivity", 0)
+        return f"RSI {rsi:+}, 민감도 {sen:+}"
+
+    results = []
+    for e in entries:
+        action = e.get("action")
+        change = e.get("result_after_30min")
+        if change is None:
+            change = e.get("result_after_5min")
+        success = None
+        if change is not None:
+            if action == "BUY":
+                success = change >= 0.03
+            elif action == "SELL":
+                success = change <= -0.03
+        results.append(
+            {
+                "timestamp": e.get("time"),
+                "action": action,
+                "price_change": change,
+                "strategy_applied": _adj_text(adjustments),
+                "success": success,
+            }
+        )
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"{datetime.now().strftime('%Y-%m-%d_%H%M')}_result.json"
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+    return str(out_path)
 

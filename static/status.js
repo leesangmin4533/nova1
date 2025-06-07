@@ -27,6 +27,15 @@ async function refresh() {
     try {
         const res = await fetch('/api/status');
         const data = await res.json();
+        const badge = document.getElementById('emotionBadge');
+        if (badge && data.classified_emotion) {
+            const idx = (data.emotion_index !== undefined && data.emotion_index !== null)
+                ? parseFloat(data.emotion_index).toFixed(2)
+                : '';
+            const signVal = idx && !idx.startsWith('-') ? '+' + idx : idx;
+            badge.textContent = `🟡 ${data.classified_emotion} ${signVal}`.trim();
+            badge.className = `emotion-badge emotion-${data.classified_emotion}`;
+        }
         document.getElementById('sentiment').innerText = data.sentiment || '-';
         document.getElementById('strategy').innerText = data.strategy || '-';
         if (data.selected_strategy) {
