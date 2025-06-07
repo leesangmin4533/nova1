@@ -124,6 +124,7 @@ class LoggerAgent:
         strategy_version: str,
         result_after_5min: float | None = None,
         result_after_30min: float | None = None,
+        conflict_analysis: dict | None = None,
     ) -> None:
         entry = {
             "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -136,6 +137,7 @@ class LoggerAgent:
             "strategy_version": strategy_version,
             "result_after_5min": result_after_5min,
             "result_after_30min": result_after_30min,
+            "conflict_analysis": conflict_analysis,
         }
 
         path = self._judgment_file_for_today()

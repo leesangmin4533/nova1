@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from .strategy_scorer import StrategyScorer
 
 
@@ -15,6 +16,8 @@ class EntryDecisionAgent:
                 "reason": "high_score_override",
             }
         }
+        self.decision_history = []
+        self.last_conflict = {"conflict_index": 0.0, "conflict_factors": []}
 
     def normalize_orderbook_strength(self, bids, asks):
         """Return normalized strength score from orderbook price-volume lists."""
@@ -121,11 +124,12 @@ class EntryDecisionAgent:
                 "score_percent": self.last_score_percent,
             })
 
+        signal = "HOLD"
         if name in ["momentum", "trend_follow"]:
             if golden_cross and rsi > 55:
-                return "BUY"
-        if name == "reversal" and recent_close < ma5:
-            return "BUY"
+                signal = "BUY"
+        elif name == "reversal" and recent_close < ma5:
+            signal = "BUY"
 
         if name == "orderbook_weighted" and order_book:
             bids = order_book.get("bids") or []
@@ -136,6 +140,7 @@ class EntryDecisionAgent:
                 signal = "BUY"
             elif score < -0.3:
                 signal = "SELL"
+            self._compute_conflict(condition_scores, rsi, chart_data, order_book, signal)
             return {
                 "signal": signal,
                 "confidence": score,
@@ -145,9 +150,10 @@ class EntryDecisionAgent:
 
         if name == "take_profit" and order_status and order_status.get("has_position"):
             if order_status.get("return_rate", 0) >= 0.05:
-                return "SELL"
+                signal = "SELL"
 
-        return "HOLD"
+        self._compute_conflict(condition_scores, rsi, chart_data, order_book, signal)
+        return signal
 
     def _calc_rsi(self, closes, period=14):
         if len(closes) < period + 1:
@@ -166,6 +172,68 @@ class EntryDecisionAgent:
             return 100.0
         rs = avg_gain / avg_loss
         return 100 - (100 / (1 + rs))
+
+    def _calc_macd(self, closes, fast=12, slow=26, signal=9):
+        if len(closes) < slow + signal:
+            return 0.0
+
+        def ema(vals, period):
+            k = 2 / (period + 1)
+            ema_val = vals[0]
+            for v in vals[1:]:
+                ema_val = v * k + ema_val * (1 - k)
+            return ema_val
+
+        fast_list = []
+        slow_list = []
+        e_fast = closes[0]
+        e_slow = closes[0]
+        for price in closes:
+            e_fast = price * (2 / (fast + 1)) + e_fast * (1 - 2 / (fast + 1))
+            e_slow = price * (2 / (slow + 1)) + e_slow * (1 - 2 / (slow + 1))
+            fast_list.append(e_fast)
+            slow_list.append(e_slow)
+        macd_list = [f - s for f, s in zip(fast_list, slow_list)]
+        e_signal = macd_list[0]
+        for m in macd_list:
+            e_signal = m * (2 / (signal + 1)) + e_signal * (1 - 2 / (signal + 1))
+        return macd_list[-1] - e_signal
+
+    def _recent_flip(self, new_signal: str) -> bool:
+        now = datetime.utcnow()
+        self.decision_history.append((now, new_signal))
+        cutoff = now - timedelta(minutes=5)
+        self.decision_history = [(t, s) for t, s in self.decision_history if t >= cutoff]
+        if len(self.decision_history) < 3:
+            return False
+        seq = [s for _, s in self.decision_history[-3:]]
+        if seq == ["BUY", "HOLD", "SELL"] or seq == ["SELL", "HOLD", "BUY"]:
+            return True
+        return False
+
+    def _compute_conflict(self, condition_scores, rsi, chart_data, order_book, signal) -> None:
+        sell_conditions = {
+            "rsi_below_45": rsi < 45,
+            "ma_cross_down": not condition_scores.get("ma_cross", False),
+            "orderbook_bias_down": (order_book.get("ask_volume", 0) > order_book.get("bid_volume", 0)) if order_book else False,
+        }
+        macd_hist = self._calc_macd(chart_data)
+        index = 0.0
+        factors = []
+        if any(condition_scores.values()) and any(sell_conditions.values()):
+            index += 0.5
+            factors.append("매수조건 A + 매도조건 B")
+        if (rsi > 55 and macd_hist < 0) or (rsi < 45 and macd_hist > 0):
+            index += 0.3
+            factors.append("RSI↑ + MACD↓" if rsi > 55 else "RSI↓ + MACD↑")
+        if self._recent_flip(signal):
+            index += 0.2
+            factors.append("잦은 판단 변경")
+        index = min(index, 1.0)
+        self.last_conflict = {
+            "conflict_index": round(index, 2),
+            "conflict_factors": factors,
+        }
 
     def decide_entry(self, signal, reason, score_percent):
         """Return ``(allow, reason)`` applying override rules."""

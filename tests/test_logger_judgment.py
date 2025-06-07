@@ -18,6 +18,7 @@ def test_log_judgment(tmp_path):
         human_likely_action='HOLD',
         score_vs_human=0,
         strategy_version='v1',
+        conflict_analysis={'conflict_index': 0.5, 'conflict_factors': []},
     )
     date_str = Path(logger._judgment_file_for_today()).name
     path = tmp_path / '판단로그' / date_str
@@ -26,3 +27,4 @@ def test_log_judgment(tmp_path):
         data = json.loads(f.readline())
     assert data['action'] == 'BUY'
     assert data['strategy_version'] == 'v1'
+    assert 'conflict_analysis' in data

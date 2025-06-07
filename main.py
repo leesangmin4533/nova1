@@ -131,6 +131,7 @@ class TradingApp:
             human_likely_action=human_action,
             score_vs_human=score_vs_human,
             strategy_version=STRATEGY_VERSION,
+            conflict_analysis=self.entry_agent.last_conflict,
         )
 
         allow_entry, entry_reason = self.entry_agent.decide_entry(signal, reason, score_percent)
