@@ -3,7 +3,7 @@ import threading
 from pathlib import Path
 from datetime import datetime
 
-LOG_DIR = Path(r"C:/Users/kanur/log")
+LOG_DIR = Path.home() / "log"
 _lock = threading.Lock()
 
 
