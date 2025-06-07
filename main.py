@@ -122,7 +122,7 @@ class TradingApp:
 
         if allow_entry and can_enter_trade(self.positions):
             order_amount = self.risk.calculate_order_amount(
-                self.balance, self.current_price, volatility
+                self.balance, volatility
             )
             if order_amount > 0:
                 qty = order_amount / self.current_price
