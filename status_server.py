@@ -139,7 +139,26 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
 
     @app.route("/")
     def dashboard():
-        return render_template("status.html")
+        return render_template("nova_decision.html")
+
+    @app.route("/api/decision")
+    def api_decision():
+        decision_path = Path(r"C:/Users/kanur/log/판단/latest_decision.json")
+        news_path = Path(r"C:/Users/kanur/log/뉴스반영/latest_news.json")
+        data = {}
+        try:
+            if decision_path.exists():
+                with open(decision_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+        except Exception:
+            data = {}
+        try:
+            if news_path.exists():
+                with open(news_path, "r", encoding="utf-8") as f:
+                    data["news"] = json.load(f)
+        except Exception:
+            pass
+        return jsonify(data)
 
     @app.route("/log")
     def log_view():
