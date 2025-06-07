@@ -27,3 +27,17 @@
   100%{background-color:transparent;}
 }
 
+.emotion-badge{
+  position:fixed;
+  top:10px;
+  right:10px;
+  padding:4px 8px;
+  border-radius:12px;
+  color:#fff;
+  font-size:0.9rem;
+  font-weight:bold;
+}
+.emotion-기대{background-color:#f1c40f;}
+.emotion-공포{background-color:#e74c3c;}
+.emotion-무관심{background-color:#7f8c8d;}
+

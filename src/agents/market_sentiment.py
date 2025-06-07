@@ -1,4 +1,7 @@
+import json
 import math
+from pathlib import Path
+from datetime import datetime
 from typing import List, Optional
 
 from .utils import get_upbit_candles
@@ -14,6 +17,10 @@ class MarketSentimentAgent:
         self.rsi = 50.0
         self.bb_score = 0
         self.ts_score = 0
+        self.emotion_index = 0.0
+        self.applied_emotion_index = 0.0
+        self.ma_3d = 0.0
+        self.classified_emotion = "무관심"
 
     def calc_rsi(self, closes: List[float], period: int = 20) -> float:
         """Return the Relative Strength Index (RSI) for the given closes.
@@ -124,4 +131,51 @@ class MarketSentimentAgent:
             level = 4
 
         self.state = self.LEVELS[level]
+        self.classified_emotion = {
+            "EXTREME_FEAR": "공포",
+            "FEAR": "공포",
+            "NEUTRAL": "무관심",
+            "GREED": "기대",
+            "EXTREME_GREED": "기대",
+        }[self.state]
+        self.emotion_index = {
+            "EXTREME_FEAR": -1.0,
+            "FEAR": -0.5,
+            "NEUTRAL": 0.0,
+            "GREED": 0.5,
+            "EXTREME_GREED": 1.0,
+        }[self.state]
+        self._update_ma()
         return self.state
+
+    # --------------------------------------------------------------
+    def _update_ma(self) -> None:
+        """Update 3-day moving average of emotion index."""
+        path = Path(r"C:\Users\kanur\log\감정지수\emotion_MA.json")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+        history = data.get("history", [])
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        found = False
+        for h in history:
+            if h.get("date") == today:
+                h["index"] = self.emotion_index
+                found = True
+                break
+        if not found:
+            history.append({"date": today, "index": self.emotion_index})
+        history = sorted(history, key=lambda x: x.get("date", ""))[-3:]
+        ma = sum(h.get("index", 0.0) for h in history) / len(history)
+        self.ma_3d = ma
+        self.applied_emotion_index = self.emotion_index * 0.5 + ma * 0.5
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(
+                {"history": history, "MA_3d": self.ma_3d, "applied_index": self.applied_emotion_index},
+                f,
+                ensure_ascii=False,
+                indent=2,
+            )

@@ -24,6 +24,8 @@ state_store = {
     "bid_volume": None,
     "ask_volume": None,
     "orderbook_score": None,
+    "classified_emotion": None,
+    "emotion_index": None,
     "rsi": None,
     "bb_score": None,
     "ts_score": None,

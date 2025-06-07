@@ -72,6 +72,8 @@ class TradingApp:
         rsi = self.sentiment_agent.rsi
         bb_score = self.sentiment_agent.bb_score
         ts_score = self.sentiment_agent.ts_score
+        emotion_index = self.sentiment_agent.applied_emotion_index
+        classified_emotion = self.sentiment_agent.classified_emotion
 
         self.strategy_selector.update_scores(self.learning_agent.weights)
         self.strategy_selector.update_market_phase(rsi, bb_score)
@@ -95,6 +97,7 @@ class TradingApp:
             order_book,
             logger=self.logger,
             symbol=SYMBOL,
+            emotion_index=self.sentiment_agent.applied_emotion_index,
         )
         if isinstance(result, dict):
             signal = result.get("signal")
@@ -254,11 +257,13 @@ class TradingApp:
         cumulative_return = stats.get("cumulative_return", 0.0)
 
         self.learning_agent.update()
-        bids = [[b["price"], b["volume"]] for b in order_book.get("bids", []) if b.get("volume")]
-        asks = [[a["price"], a["volume"]] for a in order_book.get("asks", []) if a.get("volume")]
+            bids = [[b["price"], b["volume"]] for b in order_book.get("bids", []) if b.get("volume")]
+            asks = [[a["price"], a["volume"]] for a in order_book.get("asks", []) if a.get("volume")]
 
         update_state(
             sentiment=sentiment,
+            classified_emotion=classified_emotion,
+            emotion_index=emotion_index,
             strategy=strategy,
             selected_strategy=strategy,
             strategy_mode=self.strategy_selector.strategy_mode,
@@ -301,6 +306,8 @@ if __name__ == "__main__":
             asks=[[a["price"], a["volume"]] for a in orderbook.get("asks", []) if a.get("volume")],
             bid_volume=orderbook.get("bid_volume"),
             ask_volume=orderbook.get("ask_volume"),
+            classified_emotion=app.sentiment_agent.classified_emotion,
+            emotion_index=app.sentiment_agent.applied_emotion_index,
             buy_count=app.position_manager.total_buys,
             sell_count=app.position_manager.total_sells,
             nearest_failed=app.entry_agent.nearest_failed,
