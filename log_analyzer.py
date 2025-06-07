@@ -10,14 +10,22 @@ import base64
 
 
 def load_logs(log_dir: str = "log") -> List[dict]:
-    """Load all ``*.json`` files from ``log_dir``.
-
-    Returns a list of log entries sorted by timestamp when available."""
+    """Load ``*.jsonl`` (or legacy ``*.json``) logs from ``log_dir``."""
     path = Path(log_dir)
     logs: List[dict] = []
     if not path.is_dir():
         return logs
 
+    for file in sorted(path.glob("*.jsonl")):
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip():
+                        logs.append(json.loads(line))
+        except Exception:
+            continue
+
+    # Fallback for old *.json files
     for file in sorted(path.glob("*.json")):
         try:
             with open(file, "r", encoding="utf-8") as f:

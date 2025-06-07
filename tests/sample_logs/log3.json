@@ -1,8 +1,0 @@
-{
-  "timestamp": "2024-01-01T00:20:00",
-  "agent": "PositionManager",
-  "action": "CLOSE",
-  "price": 120,
-  "strategy": "momentum",
-  "return_rate": 0.2
-}

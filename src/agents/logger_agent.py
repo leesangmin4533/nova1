@@ -1,13 +1,31 @@
 import json
+import threading
 from pathlib import Path
 from datetime import datetime
+
+LOG_DIR = Path(r"C:/Users/kanur/log")
+_lock = threading.Lock()
+
+
+def _log_file_for_today() -> Path:
+    date_str = datetime.now().strftime("%Y%m%d")
+    return LOG_DIR / f"log_{date_str}.jsonl"
+
+
+def save_log(entry: dict) -> None:
+    """Append ``entry`` as a JSON object to today's ``.jsonl`` file."""
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    path = _log_file_for_today()
+    with _lock:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
 class LoggerAgent:
     """Log actions and agent outputs to JSON files."""
 
-    def __init__(self, log_dir="log"):
-        self.log_dir = Path(log_dir)
+    def __init__(self, log_dir: str | Path | None = None):
+        self.log_dir = Path(log_dir) if log_dir else LOG_DIR
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.last_log = None
 
@@ -16,9 +34,7 @@ class LoggerAgent:
         timestamp = datetime.utcnow().isoformat()
         data = dict(data)
         data.setdefault("timestamp", timestamp)
-        filename = self.log_dir / f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S%f')}.json"
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        save_log(data)
         return data["timestamp"]
 
     def log_success(
@@ -74,16 +90,14 @@ class LoggerAgent:
 
         self.last_log = compare
 
-        filename = self.log_dir / f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S%f')}.json"
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(entry, f, ensure_ascii=False, indent=2)
+        save_log(entry)
         return timestamp
 
     def get_recent_trades(self, limit: int = 10):
         """Return recent BUY/SELL/CLOSE log entries."""
         from log_analyzer import load_logs
 
-        logs = load_logs(str(self.log_dir))
+        logs = load_logs(str(LOG_DIR))
         trades = [
             l
             for l in logs
