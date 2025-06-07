@@ -12,6 +12,10 @@ a simple web dashboard built using Flask. The agents demonstrate the following r
 - **SessionLogger**: writes all actions for a single run to `NOVA_LOGS/trade_log_<timestamp>.json`.
 - **Flask Status Server**: serves a web dashboard and JSON API.
 - **LearningAgent**: placeholder for future strategy learning.
+- **Real-time Charts**: price history and order book are plotted in the
+  dashboard using Plotly.
+- **Capital Management**: trading begins with 1,000,000 KRW of virtual
+  capital, uses 20% per entry, and limits simultaneous positions to five.
 
 ## Requirements
 
