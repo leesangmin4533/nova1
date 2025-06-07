@@ -23,6 +23,43 @@ function updateReturnTable(positions, currentPrice) {
     });
 }
 
+const THEME_PRESETS = {
+    'Dark Insight': 'theme-dark-insight',
+    'Alert Red': 'theme-alert-red',
+    'Calm Green': 'theme-calm-green',
+    'Clarity Blue': 'theme-clarity-blue'
+};
+
+async function loadTheme() {
+    try {
+        const res = await fetch('/api/theme');
+        const data = await res.json();
+        applyTheme(data.theme || 'Dark Insight');
+        const sel = document.getElementById('themeSelect');
+        if (sel) sel.value = data.theme || 'Dark Insight';
+    } catch (e) {
+        applyTheme('Dark Insight');
+    }
+}
+
+function applyTheme(name) {
+    const cls = THEME_PRESETS[name] || THEME_PRESETS['Dark Insight'];
+    document.body.className = cls;
+}
+
+async function setTheme(name) {
+    applyTheme(name);
+    try {
+        await fetch('/api/theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: name })
+        });
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 async function refresh() {
     try {
         const res = await fetch('/api/status');
@@ -187,6 +224,7 @@ async function refresh() {
 }
 setInterval(refresh, 1000);
 refresh();
+document.addEventListener('DOMContentLoaded', loadTheme);
 
 function toggleTradeLog() {
     const log = document.getElementById('tradeLog');

@@ -11,7 +11,17 @@
 <div id="emotionBadge" class="emotion-badge">-</div>
 <section class="section">
 <div class="container">
-    <h1 class="title">트레이딩 현황</h1>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h1 class="title" style="margin-bottom:0;">트레이딩 현황</h1>
+      <div>
+        <select id="themeSelect" onchange="setTheme(this.value)">
+          <option value="Dark Insight">Dark Insight</option>
+          <option value="Alert Red">Alert Red</option>
+          <option value="Calm Green">Calm Green</option>
+          <option value="Clarity Blue">Clarity Blue</option>
+        </select>
+      </div>
+    </div>
     <h2 class="subtitle" id="selected_strategy">-</h2>
     <div class="columns is-multiline" id="cards">
         <div class="column is-one-third">

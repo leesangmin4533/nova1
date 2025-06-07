@@ -41,3 +41,11 @@
 .emotion-공포{background-color:#e74c3c;}
 .emotion-무관심{background-color:#7f8c8d;}
 
+/* Theme definitions */
+body{background-color:var(--bg-color);color:var(--text-color);}
+.box{background-color:var(--box-bg);}
+.theme-dark-insight{--bg-color:#0d1b2a;--box-bg:#1b263b;--text-color:#ffffff;}
+.theme-alert-red{--bg-color:#660708;--box-bg:#370617;--text-color:#ffffff;}
+.theme-calm-green{--bg-color:#014f43;--box-bg:#1d7152;--text-color:#ffffff;}
+.theme-clarity-blue{--bg-color:#003566;--box-bg:#1c3f6b;--text-color:#ffffff;}
+

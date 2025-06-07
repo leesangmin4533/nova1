@@ -1,6 +1,31 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import threading
 from datetime import datetime, timedelta
+from pathlib import Path
+import json
+
+CONFIG_PATH = Path(r"C:/Users/kanur/log/설정/ui_config.json")
+
+
+def load_ui_config():
+    if CONFIG_PATH.exists():
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"theme": "Dark Insight"}
+
+
+def save_ui_config(theme: str) -> None:
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(
+            {"theme": theme, "last_updated": datetime.now().strftime("%Y-%m-%dT%H:%M")},
+            f,
+            ensure_ascii=False,
+        )
+
 from log_analyzer import (
     load_logs,
     analyze_logs,
@@ -38,6 +63,7 @@ state_store = {
     "asks": [],
     "buy_count": 0,
     "sell_count": 0,
+    "theme": load_ui_config().get("theme", "Dark Insight"),
 }
 
 
@@ -99,6 +125,17 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
             except Exception:
                 status["recent_trades"] = []
         return jsonify(status)
+
+    @app.route("/api/theme", methods=["GET", "POST"])
+    def api_theme():
+        if request.method == "POST":
+            data = request.get_json(silent=True) or {}
+            theme = data.get("theme")
+            if theme:
+                state_store["theme"] = theme
+                save_ui_config(theme)
+            return jsonify({"theme": state_store.get("theme")})
+        return jsonify({"theme": state_store.get("theme")})
 
     @app.route("/")
     def dashboard():
