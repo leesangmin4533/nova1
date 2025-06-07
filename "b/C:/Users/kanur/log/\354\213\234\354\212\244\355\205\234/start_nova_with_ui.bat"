@@ -1,0 +1,8 @@
+@echo off
+REM NOVA 판단 시스템 + UI 동시 실행
+
+REM 1. NOVA 판단 프로그램 실행
+start "" python "C:\Users\kanur\nova1-main\main.py"
+
+REM 2. 실시간 판단 UI 브라우저로 실행
+start "" "file:///C:/Users/kanur/log/UI/live_nova_decision_emotion_ui.html"
