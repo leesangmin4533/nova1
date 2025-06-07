@@ -257,8 +257,8 @@ class TradingApp:
         cumulative_return = stats.get("cumulative_return", 0.0)
 
         self.learning_agent.update()
-            bids = [[b["price"], b["volume"]] for b in order_book.get("bids", []) if b.get("volume")]
-            asks = [[a["price"], a["volume"]] for a in order_book.get("asks", []) if a.get("volume")]
+        bids = [[b["price"], b["volume"]] for b in order_book.get("bids", []) if b.get("volume")]
+        asks = [[a["price"], a["volume"]] for a in order_book.get("asks", []) if a.get("volume")]
 
         update_state(
             sentiment=sentiment,
