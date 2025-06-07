@@ -5,9 +5,6 @@ from typing import Any, Dict, Iterable, List, Tuple
 class StrategyEvaluator:
     """Compute performance metrics for generated strategies."""
 
-    def __init__(self) -> None:
-        pass
-
     # ------------------------------------------------------------------
     @staticmethod
     def _max_drawdown(returns: Iterable[float]) -> float:
