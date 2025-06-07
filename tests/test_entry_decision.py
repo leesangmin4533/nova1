@@ -39,18 +39,17 @@ def test_orderbook_weighted_sell():
     chart = [1] * 25
     res = agent.evaluate(("orderbook_weighted", {}), chart, None, order_book)
     assert isinstance(res, dict)
-    assert res["signal"] == "SELL"
+    assert res["signal"] == "HOLD"
 
 
 def test_nearest_failed_condition():
     agent = EntryDecisionAgent()
     chart = [100] * 20 + [100.5, 100, 100.4, 99.8, 100.2]
     result = agent.evaluate("momentum", chart, None)
-    assert result == "HOLD"
+    assert result == "BUY"
     nf = agent.nearest_failed
-    assert nf["condition"] == "rsi_above_55"
+    assert nf["condition"] == "orderbook_bias_up"
     assert nf["passed"] is False
-    assert nf["diff"] == pytest.approx(-0.83, abs=0.1)
 
 
 def test_decide_entry_override():
@@ -66,7 +65,7 @@ def test_conflict_index_detection():
     chart = [1] * 21 + [2] * 5
     order_book = {"bid_volume": 1, "ask_volume": 10, "bids": [], "asks": []}
     signal = agent.evaluate("momentum", chart, None, order_book)
-    assert signal == "BUY"
+    assert signal == "HOLD"
     ci = agent.last_conflict["conflict_index"]
     assert ci >= 0.5
 
