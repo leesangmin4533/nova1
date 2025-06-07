@@ -7,9 +7,9 @@ a simple web dashboard built using Flask. The agents demonstrate the following r
 - **StrategySelector**: chooses a trading strategy based on sentiment.
 - **EntryDecisionAgent**: decides whether to buy, sell, or hold.
 - **PositionManager**: evaluates open positions for exit conditions.
-- **LoggerAgent**: appends agent activity to a daily `log_YYYYMMDD.jsonl` file under `C:/Users/kanur/log`.
-- **DailyLogger**: appends daily success and failure entries in `NOVA_LOGS` on your Desktop.
-- **SessionLogger**: writes all actions for a single run to `NOVA_LOGS/trade_log_<timestamp>.json`.
+- **LoggerAgent**: appends agent activity to a daily `log_YYYYMMDD.jsonl` file in `~/log` by default.
+- **DailyLogger**: appends daily success and failure entries in `~/NOVA_LOGS` by default.
+- **SessionLogger**: writes all actions for a single run to `~/NOVA_LOGS/trade_log_<timestamp>.json`.
 - **Flask Status Server**: serves a web dashboard and JSON API.
 - **LearningAgent**: placeholder for future strategy learning.
 
