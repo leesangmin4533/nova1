@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta
 from .strategy_scorer import StrategyScorer
+from .news_adjuster import news_adjuster
 
 
 class EntryDecisionAgent:
     """Determine trade entry signals for various strategies."""
 
-    def __init__(self):
+    def __init__(self, adjuster=None):
         self.last_score_percent = 0.0
         self.scorer = StrategyScorer()
+        self.adjuster = adjuster if adjuster is not None else news_adjuster
         self.nearest_failed = None
         self.failed_conditions = []
         self.override_rules = {
@@ -61,8 +63,12 @@ class EntryDecisionAgent:
             prev_ma20 = sum(chart_data[-21:-1]) / 20
             golden_cross = ma5 > ma20 and chart_data[-6] <= prev_ma20
 
+        rsi_threshold = 55
+        if self.adjuster.active:
+            rsi_threshold += self.adjuster.adjustments.get("rsi_offset", 0)
+
         condition_scores = {
-            "rsi_above_55": rsi > 55,
+            "rsi_above_55": rsi > rsi_threshold,
             "ma_cross": ma_10 > ma_34,
             "golden_cross": golden_cross,
             "orderbook_bias_up": (order_book.get("bid_volume", 0) > order_book.get("ask_volume", 0)) if order_book else False,
@@ -72,9 +78,9 @@ class EntryDecisionAgent:
         condition_details = {
             "rsi_above_55": {
                 "value": rsi,
-                "threshold": 55,
-                "diff": rsi - 55,
-                "passed": rsi > 55,
+                "threshold": rsi_threshold,
+                "diff": rsi - rsi_threshold,
+                "passed": rsi > rsi_threshold,
             },
             "ma_cross": {
                 "value": ma_10 - ma_34,
@@ -111,6 +117,9 @@ class EntryDecisionAgent:
             self.nearest_failed = None
 
         self.last_score_percent = self.scorer.score(condition_scores)
+        if self.adjuster.active:
+            factor = 1 + self.adjuster.adjustments.get("decision_sensitivity", 0.0)
+            self.last_score_percent *= factor
         if failed_conditions:
             self.scorer.tune_weights(failed_conditions.keys())
 
@@ -126,7 +135,7 @@ class EntryDecisionAgent:
 
         signal = "HOLD"
         if name in ["momentum", "trend_follow"]:
-            if golden_cross and rsi > 55:
+            if golden_cross and rsi > rsi_threshold:
                 signal = "BUY"
         elif name == "reversal" and recent_close < ma5:
             signal = "BUY"
@@ -140,7 +149,7 @@ class EntryDecisionAgent:
                 signal = "BUY"
             elif score < -0.3:
                 signal = "SELL"
-            self._compute_conflict(condition_scores, rsi, chart_data, order_book, signal)
+            self._compute_conflict(condition_scores, rsi, rsi_threshold, chart_data, order_book, signal)
             return {
                 "signal": signal,
                 "confidence": score,
@@ -152,7 +161,7 @@ class EntryDecisionAgent:
             if order_status.get("return_rate", 0) >= 0.05:
                 signal = "SELL"
 
-        self._compute_conflict(condition_scores, rsi, chart_data, order_book, signal)
+        self._compute_conflict(condition_scores, rsi, rsi_threshold, chart_data, order_book, signal)
         return signal
 
     def _calc_rsi(self, closes, period=14):
@@ -211,7 +220,7 @@ class EntryDecisionAgent:
             return True
         return False
 
-    def _compute_conflict(self, condition_scores, rsi, chart_data, order_book, signal) -> None:
+    def _compute_conflict(self, condition_scores, rsi, rsi_threshold, chart_data, order_book, signal) -> None:
         sell_conditions = {
             "rsi_below_45": rsi < 45,
             "ma_cross_down": not condition_scores.get("ma_cross", False),
@@ -223,9 +232,9 @@ class EntryDecisionAgent:
         if any(condition_scores.values()) and any(sell_conditions.values()):
             index += 0.5
             factors.append("매수조건 A + 매도조건 B")
-        if (rsi > 55 and macd_hist < 0) or (rsi < 45 and macd_hist > 0):
+        if (rsi > rsi_threshold and macd_hist < 0) or (rsi < 45 and macd_hist > 0):
             index += 0.3
-            factors.append("RSI↑ + MACD↓" if rsi > 55 else "RSI↓ + MACD↑")
+            factors.append("RSI↑ + MACD↓" if rsi > rsi_threshold else "RSI↓ + MACD↑")
         if self._recent_flip(signal):
             index += 0.2
             factors.append("잦은 판단 변경")

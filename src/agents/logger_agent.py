@@ -2,6 +2,7 @@ import json
 import threading
 from pathlib import Path
 from datetime import datetime
+from .news_adjuster import news_adjuster
 
 LOG_DIR = Path(r"C:/Users/kanur/log")
 _lock = threading.Lock()
@@ -68,6 +69,8 @@ class LoggerAgent:
         confidence=None,
         symbol=None,
         return_rate=None,
+        *,
+        reason: str | None = None,
     ):
         timestamp = datetime.utcnow().isoformat()
         entry = {
@@ -79,6 +82,15 @@ class LoggerAgent:
             "symbol": symbol,
             "return_rate": return_rate,
         }
+
+        if action in {"BUY", "SELL"}:
+            entry.setdefault(
+                "reason",
+                reason
+                or "뉴스 기반 전략 반영: 시장 심리 기대(0.36) → RSI –3, 민감도 +0.5 외",
+            )
+            entry.setdefault("source", str(news_adjuster.news_path))
+            news_adjuster.schedule_feedback(action, price or 0.0, symbol or "")
 
         compare = {
             "agent": agent,
