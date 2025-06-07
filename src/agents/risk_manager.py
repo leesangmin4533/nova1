@@ -7,7 +7,6 @@ class RiskManager:
     def calculate_order_amount(
         self,
         balance: float,
-        current_price: float,
         volatility: float | None = None,
     ) -> float:
         """Return an order amount based on account balance and volatility."""
