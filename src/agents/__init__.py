@@ -13,6 +13,7 @@ from .session_logger import SessionLogger
 from .missed_hold_tracker import track_failed_hold
 from .strategy_scorer import StrategyScorer
 from .human_compare import HumanCompareAgent
+from .news_adjuster import NewsAdjuster, news_adjuster
 
 __all__ = [
     'MarketSentimentAgent',
@@ -30,4 +31,6 @@ __all__ = [
     'track_failed_hold',
     'StrategyScorer',
     'HumanCompareAgent',
+    'NewsAdjuster',
+    'news_adjuster',
 ]
