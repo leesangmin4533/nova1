@@ -9,6 +9,7 @@ from .learning_agent import LearningAgent
 from .daily_logger import DailyLogger
 from .session_logger import SessionLogger
 from .missed_hold_tracker import track_failed_hold
+from .strategy_scorer import StrategyScorer
 
 __all__ = [
     'MarketSentimentAgent',
@@ -22,4 +23,5 @@ __all__ = [
     'LearningAgent',
     'DailyLogger',
     'track_failed_hold',
+    'StrategyScorer',
 ]

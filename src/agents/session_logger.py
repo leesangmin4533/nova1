@@ -7,8 +7,8 @@ class SessionLogger:
     """Unified logger that appends entries to a single file per session."""
 
     def __init__(self, base_dir: str | Path | None = None):
-        desktop_path = Path.home() / "Desktop" if base_dir is None else Path(base_dir)
-        self.log_dir = desktop_path / "NOVA_LOGS"
+        base = Path(base_dir) if base_dir is not None else Path(r"C:/Users/kanur/log")
+        self.log_dir = base / "NOVA_LOGS"
         self.log_dir.mkdir(parents=True, exist_ok=True)
         session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_file = self.log_dir / f"trade_log_{session_id}.json"
