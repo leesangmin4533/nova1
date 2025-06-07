@@ -60,3 +60,13 @@ def test_decide_entry_override():
     assert allow is True
     assert reason == "high_score_override"
 
+
+def test_conflict_index_detection():
+    agent = EntryDecisionAgent()
+    chart = [1] * 21 + [2] * 5
+    order_book = {"bid_volume": 1, "ask_volume": 10, "bids": [], "asks": []}
+    signal = agent.evaluate("momentum", chart, None, order_book)
+    assert signal == "BUY"
+    ci = agent.last_conflict["conflict_index"]
+    assert ci >= 0.5
+
