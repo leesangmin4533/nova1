@@ -1,8 +1,12 @@
+from .strategy_scorer import StrategyScorer
+
+
 class EntryDecisionAgent:
     """Determine trade entry signals for various strategies."""
 
     def __init__(self):
         self.last_score_percent = 0.0
+        self.scorer = StrategyScorer()
         self.nearest_failed = None
         self.failed_conditions = []
         self.override_rules = {
@@ -103,7 +107,9 @@ class EntryDecisionAgent:
         else:
             self.nearest_failed = None
 
-        self.last_score_percent = sum(bool(v) for v in condition_scores.values()) / len(condition_scores) * 100
+        self.last_score_percent = self.scorer.score(condition_scores)
+        if failed_conditions:
+            self.scorer.tune_weights(failed_conditions.keys())
 
         if logger is not None:
             logger.log_event({

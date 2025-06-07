@@ -8,8 +8,8 @@ class DailyLogger:
     """Simple logger that appends success and failure events by day."""
 
     def __init__(self, base_dir: str | os.PathLike | None = None):
-        desktop = Path.home() / "Desktop" if base_dir is None else Path(base_dir)
-        self.log_dir = desktop / "NOVA_LOGS"
+        base = Path(base_dir) if base_dir is not None else Path(r"C:/Users/kanur/log")
+        self.log_dir = base / "NOVA_LOGS"
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_log_file(self, kind: str) -> Path:

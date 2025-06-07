@@ -9,7 +9,7 @@ ANALYSIS_DELAY_SEC = 5 * 60  # 5 minutes
 THRESHOLD_PCT = 1.0
 MIN_CONFIDENCE = 50.0
 
-LOG_DIR = Path(r"C:\Users\kanur\log\missed_hold")
+LOG_DIR = Path(r"C:/Users/kanur/log/missed_hold")
 LOG_FILE = LOG_DIR / "failed_holds.jsonl"
 
 
