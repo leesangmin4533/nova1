@@ -30,7 +30,19 @@ class EntryDecisionAgent:
             return 0.0
         return (bid_strength - ask_strength) / total
 
-    def evaluate(self, strategy, chart_data, order_status, order_book=None, *, logger=None, symbol=None, emotion_index=None):
+    def evaluate(
+        self,
+        strategy,
+        chart_data,
+        order_status,
+        order_book=None,
+        *,
+        logger=None,
+        symbol=None,
+        emotion_index=None,
+        emotion_ma=None,
+        news_emotion=None,
+    ):
         """Return BUY, SELL, or HOLD signal or detailed dict for special strategy.
 
         When ``logger`` is provided, a ``condition_evaluation`` event will be written
@@ -48,37 +60,72 @@ class EntryDecisionAgent:
         ma20 = sum(chart_data[-20:]) / 20
 
         rsi = self._calc_rsi(chart_data)
+        if len(chart_data) >= 15:
+            rsi_prev = self._calc_rsi(chart_data[:-1])
+        else:
+            rsi_prev = rsi
+        rsi_diff = rsi - rsi_prev
+        buy_sens = 1.0
+        sell_sens = 1.0
+        if rsi_diff > 0:
+            buy_sens += 1
+        elif rsi_diff < 0:
+            sell_sens += 1
+        if (emotion_ma is not None and emotion_ma >= 0.3) or (
+            news_emotion is not None and news_emotion >= 0.3
+        ):
+            buy_sens *= 1.1
+        if emotion_ma is not None and emotion_ma <= -0.3:
+            sell_sens *= 1.1
 
         ma_10 = sum(chart_data[-10:]) / 10
         ma_34 = sum(chart_data[-34:]) / 34 if len(chart_data) >= 34 else ma20
 
         volatility = 0.0
+        bb_score_val = 0
         if len(chart_data) >= 20:
             mean20 = sum(chart_data[-20:]) / 20
             var20 = sum((c - mean20) ** 2 for c in chart_data[-20:]) / 20
-            volatility = (var20 ** 0.5) / mean20 if mean20 else 0.0
-
+            std20 = (var20 ** 0.5)
+            volatility = std20 / mean20 if mean20 else 0.0
+            upper = mean20 + 2 * std20
+            lower = mean20 - 2 * std20
+            if recent_close > upper:
+                bb_score_val = 1
+            elif recent_close < lower:
+                bb_score_val = -1
+        
         golden_cross = False
         if len(chart_data) >= 25:
             prev_ma20 = sum(chart_data[-21:-1]) / 20
             golden_cross = ma5 > ma20 and chart_data[-6] <= prev_ma20
 
-        rsi_threshold = 55
+        rsi_threshold = 48.0
         if self.adjuster.active:
             rsi_threshold += self.adjuster.adjustments.get("rsi_offset", 0)
         if emotion_index is not None:
             rsi_threshold += emotion_index * 5
 
+        if order_book:
+            bid_volume = order_book.get("bid_volume")
+            ask_volume = order_book.get("ask_volume")
+            if bid_volume is None or ask_volume is None:
+                bid_volume = sum(b.get("volume", 0) for b in order_book.get("bids", []))
+                ask_volume = sum(a.get("volume", 0) for a in order_book.get("asks", []))
+        else:
+            bid_volume = ask_volume = 0
+
         condition_scores = {
-            "rsi_above_55": rsi > rsi_threshold,
+            "rsi_above_threshold": rsi > rsi_threshold,
             "ma_cross": ma_10 > ma_34,
             "golden_cross": golden_cross,
-            "orderbook_bias_up": (order_book.get("bid_volume", 0) > order_book.get("ask_volume", 0)) if order_book else False,
+            "orderbook_bias_up": bid_volume > ask_volume,
+            "orderbook_bias_down": ask_volume > bid_volume,
             "volatility_threshold": volatility < 0.02,
         }
 
         condition_details = {
-            "rsi_above_55": {
+            "rsi_above_threshold": {
                 "value": rsi,
                 "threshold": rsi_threshold,
                 "diff": rsi - rsi_threshold,
@@ -97,10 +144,16 @@ class EntryDecisionAgent:
                 "passed": golden_cross,
             },
             "orderbook_bias_up": {
-                "value": (order_book.get("bid_volume", 0) - order_book.get("ask_volume", 0)) if order_book else None,
+                "value": bid_volume - ask_volume if order_book else None,
                 "threshold": 0,
-                "diff": (order_book.get("bid_volume", 0) - order_book.get("ask_volume", 0)) if order_book else float("inf"),
-                "passed": (order_book.get("bid_volume", 0) > order_book.get("ask_volume", 0)) if order_book else False,
+                "diff": bid_volume - ask_volume if order_book else float("inf"),
+                "passed": bid_volume > ask_volume if order_book else False,
+            },
+            "orderbook_bias_down": {
+                "value": ask_volume - bid_volume if order_book else None,
+                "threshold": 0,
+                "diff": ask_volume - bid_volume if order_book else float("inf"),
+                "passed": ask_volume > bid_volume if order_book else False,
             },
             "volatility_threshold": {
                 "value": volatility,
@@ -109,6 +162,28 @@ class EntryDecisionAgent:
                 "passed": volatility < 0.02,
             },
         }
+
+        rsi_score_val = 1 if rsi > rsi_threshold else -1 if rsi < rsi_threshold else 0
+        bb_score = bb_score_val
+        ob_down = condition_scores.get("orderbook_bias_down", False)
+        ts_score_val = 0
+        buy_score = (
+            (1 if rsi_score_val > 0 else 0)
+            + (1 if bb_score > 0 else 0)
+            + (1 if condition_scores.get("orderbook_bias_up") else 0)
+            + (1 if ts_score_val > 0 else 0)
+        )
+        sell_score = (
+            (1 if rsi_score_val < 0 else 0)
+            + (1 if bb_score < 0 else 0)
+            + (1 if ob_down else 0)
+            + (1 if ts_score_val < 0 else 0)
+        )
+        if emotion_ma is not None:
+            if emotion_ma > 0:
+                buy_score += emotion_ma
+            elif emotion_ma < 0:
+                sell_score += abs(emotion_ma)
 
         failed_conditions = {k: v for k, v in condition_details.items() if not v["passed"]}
         self.failed_conditions = list(failed_conditions)
@@ -154,6 +229,17 @@ class EntryDecisionAgent:
             elif score < -0.3:
                 signal = "SELL"
             self._compute_conflict(condition_scores, rsi, rsi_threshold, chart_data, order_book, signal)
+            ci = self.last_conflict.get("conflict_index", 0.0)
+            diff = buy_sens * buy_score - sell_sens * sell_score
+            if ci >= 0.5:
+                if diff > 0:
+                    signal = "BUY"
+                elif diff < 0:
+                    signal = "SELL"
+                else:
+                    signal = "HOLD"
+            if abs(diff) >= 1.5:
+                signal = "BUY" if diff > 0 else "SELL"
             return {
                 "signal": signal,
                 "confidence": score,
@@ -166,6 +252,17 @@ class EntryDecisionAgent:
                 signal = "SELL"
 
         self._compute_conflict(condition_scores, rsi, rsi_threshold, chart_data, order_book, signal)
+        ci = self.last_conflict.get("conflict_index", 0.0)
+        diff = buy_sens * buy_score - sell_sens * sell_score
+        if ci >= 0.5:
+            if diff > 0:
+                signal = "BUY"
+            elif diff < 0:
+                signal = "SELL"
+            else:
+                signal = "HOLD"
+        if abs(diff) >= 1.5:
+            signal = "BUY" if diff > 0 else "SELL"
         return signal
 
     def _calc_rsi(self, closes, period=14):
