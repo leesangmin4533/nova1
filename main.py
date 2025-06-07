@@ -276,7 +276,7 @@ if __name__ == "__main__":
     app = TradingApp()
     # Launch the Flask status server in a background daemon thread so
     # that the trading loop can run uninterrupted.
-    server_thread = start_status_server(position_manager=app.position_manager, logger_agent=app.logger)
+    start_status_server(position_manager=app.position_manager, logger_agent=app.logger)
     symbol = SYMBOL
     while True:
         orderbook = get_upbit_orderbook(symbol)
