@@ -1,0 +1,7 @@
+{
+  "watch_interval_seconds": 2,
+  "theme_mode": "emotion-reactive",
+  "max_log_items": 3,
+  "pulse_effect": true,
+  "font_family": "Pretendard"
+}
