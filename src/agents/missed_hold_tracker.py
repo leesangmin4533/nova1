@@ -3,13 +3,14 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
+from config import LOG_BASE_DIR
 
 
 ANALYSIS_DELAY_SEC = 5 * 60  # 5 minutes
 THRESHOLD_PCT = 1.0
 MIN_CONFIDENCE = 50.0
 
-LOG_DIR = Path(r"C:/Users/kanur/log/missed_hold")
+LOG_DIR = LOG_BASE_DIR / "missed_hold"
 LOG_FILE = LOG_DIR / "failed_holds.jsonl"
 
 

@@ -2,9 +2,10 @@ import os
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from config import LOG_BASE_DIR
 
 
-def archive_logs(base_dir: str = r"C:/Users/kanur/log", *, days: int = 1) -> None:
+def archive_logs(base_dir: str | Path = LOG_BASE_DIR, *, days: int = 1) -> None:
     """Compress log files older than ``days`` into per-day zip archives.
 
     Parameters

@@ -9,6 +9,7 @@ from agents.logger_agent import LoggerAgent
 
 
 def test_log_judgment(tmp_path):
+    os.environ['NOVA_LOG_DIR'] = str(tmp_path)
     logger = LoggerAgent(log_dir=tmp_path)
     logger.log_judgment(
         action='BUY',

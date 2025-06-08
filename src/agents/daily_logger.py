@@ -2,13 +2,14 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from config import LOG_BASE_DIR
 
 
 class DailyLogger:
     """Simple logger that appends success and failure events by day."""
 
     def __init__(self, base_dir: str | os.PathLike | None = None):
-        base = Path(base_dir) if base_dir is not None else Path(r"C:/Users/kanur/log")
+        base = Path(base_dir) if base_dir is not None else LOG_BASE_DIR
         self.log_dir = base / "NOVA_LOGS"
         self.log_dir.mkdir(parents=True, exist_ok=True)
 

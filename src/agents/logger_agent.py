@@ -3,8 +3,9 @@ import threading
 from pathlib import Path
 from datetime import datetime
 from .news_adjuster import news_adjuster
+from config import LOG_BASE_DIR
 
-LOG_DIR = Path(r"C:/Users/kanur/log")
+LOG_DIR = LOG_BASE_DIR
 _lock = threading.Lock()
 
 

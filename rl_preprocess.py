@@ -2,9 +2,10 @@ import json
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any
+from config import LOG_BASE_DIR
 
 
-def preprocess_logs(base_dir: str = r"C:/Users/kanur/log") -> Path:
+def preprocess_logs(base_dir: str | Path = LOG_BASE_DIR) -> Path:
     """Convert judgment logs into RL format and save to a jsonl file.
 
     The output file will be named ``nova_rl_data_{YYYY-MM-DD}.jsonl`` under
