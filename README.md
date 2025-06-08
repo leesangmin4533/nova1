@@ -64,6 +64,30 @@ python log_archiver.py
 The script compresses `.jsonl`, `.json`, `.csv`, and `.txt` logs under
 `C:/Users/kanur/log` and removes the originals after archiving.
 
+## React Dashboard
+
+If you want to experiment with a React-based frontend, navigate to the React
+dashboard directory and install the Node.js dependencies:
+
+```bash
+npm install
+```
+
+Start the development server with hot reloading:
+
+```bash
+npm run dev
+```
+
+Create an optimized production build:
+
+```bash
+npm run build
+```
+
+The Flask API should still run separately (for example with `python main.py`).
+The React app fetches its status data from the `/api/status` endpoint.
+
 ## Disclaimer / 면책 조항
 
 **English:** This project is provided for demonstration and educational purposes only. It is not intended as financial advice or a solicitation to trade. Using this code for real trading is done at your own risk, and the authors disclaim all liability for any potential losses.
