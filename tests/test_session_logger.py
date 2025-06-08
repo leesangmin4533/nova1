@@ -7,6 +7,7 @@ from agents.session_logger import SessionLogger
 
 
 def test_session_logger(tmp_path):
+    os.environ['NOVA_LOG_DIR'] = str(tmp_path)
     logger = SessionLogger(base_dir=tmp_path)
     logger.log_success('A', 'BUY', price=1.0, strategy='s', return_rate=0.1)
     logger.log_failure('B', 'error')

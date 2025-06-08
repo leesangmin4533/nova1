@@ -5,6 +5,7 @@ from collections import deque
 from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
+from config import LOG_BASE_DIR
 
 import torch
 import torch.nn as nn
@@ -108,7 +109,7 @@ def load_dataset(path: Path) -> List[Tuple]:
 
 
 def train(data_path: Path, out_dir: Path | None = None, episodes: int = 1):
-    out_dir = out_dir or Path(r"C:/Users/kanur/log/RL모델결과")
+    out_dir = out_dir or (LOG_BASE_DIR / "RL모델결과")
     out_dir.mkdir(parents=True, exist_ok=True)
     dataset = load_dataset(data_path)
     agent = DDQNAgent()
@@ -134,7 +135,7 @@ def train(data_path: Path, out_dir: Path | None = None, episodes: int = 1):
 
 
 if __name__ == "__main__":
-    base = Path(r"C:/Users/kanur/log/강화학습전처리")
+    base = LOG_BASE_DIR / "강화학습전처리"
     latest = sorted(base.glob("nova_rl_data_*.jsonl"))[-1]
     w, c = train(latest)
     print("saved", w, c)

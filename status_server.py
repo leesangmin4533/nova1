@@ -3,8 +3,9 @@ import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 import json
+from config import LOG_BASE_DIR
 
-CONFIG_PATH = Path(r"C:/Users/kanur/log/설정/ui_config.json")
+CONFIG_PATH = LOG_BASE_DIR / "설정" / "ui_config.json"
 
 
 def load_ui_config():
@@ -146,7 +147,7 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
     def api_decision():
         data = state_store.get("decision", {})
         if not data:
-            decision_path = Path(r"C:/Users/kanur/log/판단/latest_decision.json")
+            decision_path = LOG_BASE_DIR / "판단" / "latest_decision.json"
             try:
                 if decision_path.exists():
                     with open(decision_path, "r", encoding="utf-8") as f:

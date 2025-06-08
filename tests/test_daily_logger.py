@@ -8,6 +8,7 @@ from agents.daily_logger import DailyLogger
 
 
 def test_daily_logger_write(tmp_path):
+    os.environ['NOVA_LOG_DIR'] = str(tmp_path)
     logger = DailyLogger(base_dir=tmp_path)
     logger.log_failure('AgentA', 'reason')
     logger.log_success('AgentB', 'BUY', price=1.23, strategy='s', return_rate=0.1)
