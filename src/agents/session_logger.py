@@ -7,7 +7,7 @@ class SessionLogger:
     """Unified logger that appends entries to a single file per session."""
 
     def __init__(self, base_dir: str | Path | None = None):
-        base = Path(base_dir) if base_dir is not None else Path(r"C:/Users/kanur/log")
+        base = Path(base_dir) if base_dir else Path.home()
         self.log_dir = base / "NOVA_LOGS"
         self.log_dir.mkdir(parents=True, exist_ok=True)
         session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
