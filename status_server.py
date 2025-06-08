@@ -158,7 +158,7 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
 
     @app.route("/log")
     def log_view():
-        logs = load_logs("log")
+        logs = load_logs(str(LOG_BASE_DIR))
         stats = analyze_logs(logs)
         recent = []
         for l in get_recent_logs(logs, 10):
