@@ -64,6 +64,14 @@ python log_archiver.py
 The script compresses `.jsonl`, `.json`, `.csv`, and `.txt` logs under
 `C:/Users/kanur/log` and removes the originals after archiving.
 
+## Contributing
+
+When submitting pull requests, write a short, descriptive summary on the first line of your commit message. This should capture the intent of the change, for example:
+
+`Switch to React UI, remove Flask templates`
+
+This brief summary helps reviewers understand each commit at a glance.
+
 ## Disclaimer / 면책 조항
 
 **English:** This project is provided for demonstration and educational purposes only. It is not intended as financial advice or a solicitation to trade. Using this code for real trading is done at your own risk, and the authors disclaim all liability for any potential losses.
