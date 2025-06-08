@@ -46,30 +46,13 @@ You can view the web dashboard at `http://localhost:5000/`.
 The server also exposes a JSON status API at `http://localhost:5000/api/status`.
 Log analysis is available at `http://localhost:5000/log`.
 
-For a lightweight view of the latest session logs stored in
-`~/Desktop/NOVA_LOGS`, you can run the standalone report server:
-
-```bash
-python report_server.py
-```
-This will start a Flask app on port `7860` with a `/report` endpoint displaying
-a simple summary.
-
-To keep the log directory tidy, you can archive files older than a day into
-date-stamped zip files:
-
-```bash
-python log_archiver.py
-```
-The script compresses `.jsonl`, `.json`, `.csv`, and `.txt` logs under
-`C:/Users/kanur/log` and removes the originals after archiving.
-
 ## React Dashboard
 
-If you want to experiment with a React-based frontend, navigate to the React
-dashboard directory and install the Node.js dependencies:
+If you want to experiment with the React-based dashboard, first install
+the Node.js dependencies in the `ui-react` directory:
 
 ```bash
+cd ui-react
 npm install
 ```
 
@@ -85,8 +68,28 @@ Create an optimized production build:
 npm run build
 ```
 
-The Flask API should still run separately (for example with `python main.py`).
-The React app fetches its status data from the `/api/status` endpoint.
+The Flask API should still run separately (for example with
+`python main.py`). The React app fetches its status data from the
+`/api/status` endpoint.
+
+For a lightweight view of the latest session logs stored in
+`~/Desktop/NOVA_LOGS`, you can run the standalone report server:
+
+```bash
+python report_server.py
+```
+This will start a Flask app on port `7860` with a `/report` endpoint displaying
+a simple summary.
+
+To keep the log directory tidy, you can archive files older than a day into
+date-stamped zip files:
+
+```bash
+python log_archiver.py
+```
+
+The script compresses `.jsonl`, `.json`, `.csv`, and `.txt` logs under
+`C:/Users/kanur/log` and removes the originals after archiving.
 
 ## Disclaimer / 면책 조항
 
