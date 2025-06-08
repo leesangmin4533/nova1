@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
+from config import LOG_BASE_DIR
 from typing import Dict, Iterable
 
 DEFAULT_WEIGHTS: Dict[str, float] = {
@@ -25,7 +26,7 @@ class StrategyScorer:
         self.weights: Dict[str, float] = dict(DEFAULT_WEIGHTS)
         if weights:
             self.weights.update(weights)
-        base = Path(log_dir) if log_dir is not None else Path(r"C:/Users/kanur/log/strategy_scorer")
+        base = Path(log_dir) if log_dir is not None else LOG_BASE_DIR / "strategy_scorer"
         base.mkdir(parents=True, exist_ok=True)
         self.log_dir = base
         self.history_path = base / history_file

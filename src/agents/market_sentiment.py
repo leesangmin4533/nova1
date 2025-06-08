@@ -1,6 +1,7 @@
 import json
 import math
 from pathlib import Path
+from config import LOG_BASE_DIR
 from datetime import datetime
 from typing import List, Optional
 
@@ -151,7 +152,7 @@ class MarketSentimentAgent:
     # --------------------------------------------------------------
     def _update_ma(self) -> None:
         """Update 3-day moving average of emotion index."""
-        path = Path(r"C:\Users\kanur\log\감정지수\emotion_MA.json")
+        path = LOG_BASE_DIR / "감정지수" / "emotion_MA.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         try:
             with open(path, "r", encoding="utf-8") as f:
