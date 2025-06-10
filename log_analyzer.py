@@ -5,9 +5,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import List, Dict, Tuple
 from datetime import datetime
-import matplotlib.pyplot as plt
 import io
 import base64
+
+try:
+    import matplotlib.pyplot as plt  # type: ignore
+except Exception:  # pragma: no cover - simplify test environment
+    plt = None
 
 
 def load_logs(log_dir: str = "log") -> List[dict]:
@@ -133,7 +137,7 @@ def get_recent_logs(logs: List[dict], n: int = 10) -> List[dict]:
 
 def generate_bar_chart(data: Dict[str, float]) -> str:
     """Return a base64 PNG bar chart for the given mapping."""
-    if not data:
+    if plt is None or not data:
         return ""
     fig, ax = plt.subplots(figsize=(4, 3))
     ax.bar(list(data.keys()), list(data.values()))
@@ -148,7 +152,7 @@ def generate_bar_chart(data: Dict[str, float]) -> str:
 
 def generate_line_chart(curve: List[Tuple[str, float]]) -> str:
     """Return a base64 PNG line chart from cumulative return curve."""
-    if not curve:
+    if plt is None or not curve:
         return ""
     x = list(range(len(curve)))
     y = [c[1] for c in curve]

@@ -14,6 +14,7 @@ from .missed_hold_tracker import track_failed_hold
 from .strategy_scorer import StrategyScorer
 from .human_compare import HumanCompareAgent
 from .news_adjuster import NewsAdjuster, news_adjuster
+from .visualizer_agent import VisualizerAgent
 
 __all__ = [
     'MarketSentimentAgent',
@@ -33,4 +34,5 @@ __all__ = [
     'HumanCompareAgent',
     'NewsAdjuster',
     'news_adjuster',
+    'VisualizerAgent',
 ]
