@@ -31,11 +31,10 @@ from version import STRATEGY_VERSION
 import webbrowser
 import os
 
-# UI 파일 경로 지정
-ui_path = "file:///C:/Users/kanur/log/UI/live_nova_decision_emotion_ui.html"
-
-# UI 브라우저 자동 실행
-webbrowser.open(ui_path)
+# Launch local React UI if built
+ui_file = Path(__file__).resolve().parent / "ui-react" / "dist" / "index.html"
+if ui_file.exists():
+    webbrowser.open(f"file://{ui_file}")
 
 
 SYMBOL = "KRW-BTC"

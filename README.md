@@ -43,13 +43,13 @@ python run_with_ngrok.py
 The script will automatically install `pyngrok` if missing and print the public URL.
 
 You can view the web dashboard at `http://localhost:5000/`.
-The server also exposes a JSON status API at `http://localhost:5000/api/status`.
-Log analysis is available at `http://localhost:5000/log`.
+The server exposes a JSON status API at `http://localhost:5000/api/status`.
+Log statistics can be retrieved from `http://localhost:5000/log` as JSON.
 
 ## React Dashboard
 
-If you want to experiment with the React-based dashboard, first install
-the Node.js dependencies in the `ui-react` directory:
+The UI has been rebuilt using **React** and **Tailwind CSS**.
+To get started install the Node.js dependencies in the `ui-react` directory:
 
 ```bash
 cd ui-react
@@ -62,7 +62,7 @@ Start the development server with hot reloading:
 npm run dev
 ```
 
-Create an optimized production build:
+Create an optimized production build (output is placed in `ui-react/dist`):
 
 ```bash
 npm run build

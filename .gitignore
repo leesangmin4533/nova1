@@ -39,3 +39,7 @@ Thumbs.db
 __pycache__/
 *.pyc
 data/
+
+# Node
+ui-react/node_modules/
+ui-react/dist/
