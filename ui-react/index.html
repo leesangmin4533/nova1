@@ -9,5 +9,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      let lastTs = null;
+      async function pollDecision() {
+        try {
+          const res = await fetch('/api/decision');
+          const data = await res.json();
+          const ts = data.timestamp || data.time;
+          if (lastTs && ts && ts !== lastTs) {
+            location.reload();
+          }
+          lastTs = ts;
+        } catch (e) {}
+      }
+      setInterval(pollDecision, 2000);
+    </script>
   </body>
 </html>

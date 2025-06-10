@@ -4,3 +4,4 @@ requests>=2.0
 matplotlib>=3.5
 pyngrok>=7.0
 torch
+psutil>=5.9
