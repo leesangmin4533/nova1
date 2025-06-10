@@ -29,12 +29,29 @@ from log_analyzer import load_logs, analyze_logs
 from version import STRATEGY_VERSION
 
 import webbrowser
-import os
+import subprocess
+import psutil
 
-# Launch local React UI if built
+# Launch local React UI if built without reopening if already open
 ui_file = Path(__file__).resolve().parent / "ui-react" / "dist" / "index.html"
-if ui_file.exists():
-    webbrowser.open(f"file://{ui_file}")
+ui_url = ui_file.as_uri()
+
+
+def is_ui_already_open() -> bool:
+    for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+        try:
+            cmdline = " ".join(proc.info.get("cmdline") or [])
+            if str(ui_file) in cmdline:
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return False
+
+
+if ui_file.exists() and not is_ui_already_open():
+    webbrowser.open(ui_url)
+else:
+    print("[✔] UI 이미 실행 중이거나 파일 없음 → 생략됨")
 
 
 SYMBOL = "KRW-BTC"
