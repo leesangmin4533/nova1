@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NOVA Decision Viewer</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    pre { background: #f0f0f0; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>NOVA Decision Viewer</h1>
+  <pre id="status">Loading...</pre>
+  <script>
+    async function load() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        document.getElementById('status').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('status').textContent = 'Error fetching data';
+      }
+    }
+    load();
+    setInterval(load, 1000);
+  </script>
+</body>
+</html>

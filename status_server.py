@@ -3,7 +3,7 @@ import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 import json
-from config import LOG_BASE_DIR
+from config import LOG_BASE_DIR, UI_PATH, LOCAL_SERVER_PORT
 
 CONFIG_PATH = LOG_BASE_DIR / "설정" / "ui_config.json"
 
@@ -110,7 +110,7 @@ def update_state(**kwargs):
     state_store["equity"] = equity
 
 
-def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_manager=None, logger_agent=None):
+def start_status_server(host: str = "0.0.0.0", port: int = LOCAL_SERVER_PORT, *, position_manager=None, logger_agent=None):
     """Start a background Flask server exposing current trading status."""
 
     app = Flask(
@@ -200,5 +200,13 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
         daemon=True,
     )
     thread.start()
+
+    # Automatically open the legacy UI if available
+    try:
+        if UI_PATH.exists():
+            import webbrowser
+            webbrowser.open(UI_PATH.as_uri())
+    except Exception:
+        pass
     return thread
 
