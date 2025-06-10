@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>NOVA 판단 상태</title>
+  <style>
+    body {
+      background-color: #1e2a38;
+      color: #e3f2fd;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
+    }
+    h1 { color: #64b5f6; }
+    .section { margin-top: 20px; }
+    .label { font-weight: bold; color: #90caf9; }
+    .value { margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <h1>🤖 NOVA 판단 시스템 상태</h1>
+
+  <div class="section">
+    <div class="label">📡 시스템 상태:</div>
+    <div class="value" id="system_status">확인 중...</div>
+  </div>
+
+  <div class="section">
+    <div class="label">🕒 마지막 판단 시각:</div>
+    <div class="value" id="last_decision_time">-</div>
+  </div>
+
+  <div class="section">
+    <div class="label">📈 최근 판단 결과:</div>
+    <div class="value" id="last_action">-</div>
+  </div>
+
+  <div class="section">
+    <div class="label">🧠 판단 사유:</div>
+    <div class="value" id="last_reason">-</div>
+  </div>
+
+  <div class="section">
+    <div class="label">🤔 인간 추정 판단:</div>
+    <div class="value" id="human_action">-</div>
+  </div>
+
+  <div class="section">
+    <div class="label">🧮 판단 비교 점수:</div>
+    <div class="value" id="score_vs_human">-</div>
+  </div>
+
+  <script>
+    function updateDecisionData() {
+      fetch("C:/Users/kanur/log/판단/latest_decision.json")
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("system_status").textContent = "활성화됨";
+          document.getElementById("last_decision_time").textContent = data.time || "-";
+          document.getElementById("last_action").textContent = data.action || "-";
+          document.getElementById("last_reason").textContent = data.reason || "-";
+          document.getElementById("human_action").textContent = data.human_likely_action || "-";
+          document.getElementById("score_vs_human").textContent = data.score_vs_human !== undefined ? data.score_vs_human : "-";
+        })
+        .catch(() => {
+          document.getElementById("system_status").textContent = "판단 데이터 대기 중...";
+        });
+    }
+
+    setInterval(updateDecisionData, 2000);
+    updateDecisionData();
+  </script>
+</body>
+</html>
