@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, request
 import threading
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -113,7 +113,11 @@ def update_state(**kwargs):
 def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_manager=None, logger_agent=None):
     """Start a background Flask server exposing current trading status."""
 
-    app = Flask(__name__, static_folder="static", template_folder="templates")
+    app = Flask(
+        __name__,
+        static_folder="ui-react/dist",
+        static_url_path="",
+    )
 
     @app.route("/api/status")
     def api_status():
@@ -141,7 +145,7 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
 
     @app.route("/")
     def dashboard():
-        return render_template("nova_decision.html")
+        return app.send_static_file("index.html")
 
     @app.route("/api/decision")
     def api_decision():
@@ -180,14 +184,15 @@ def start_status_server(host: str = "0.0.0.0", port: int = 5000, *, position_man
             if l.get("type") == "entry_denied":
                 r = l.get("reason")
                 reason_stats[r] = reason_stats.get(r, 0) + 1
-        return render_template(
-            "log.html",
-            stats=stats,
-            bar_chart=bar_chart,
-            line_chart=line_chart,
-            recent=recent,
-            average_score=avg_score,
-            reason_stats=reason_stats,
+        return jsonify(
+            {
+                "stats": stats,
+                "bar_chart": bar_chart,
+                "line_chart": line_chart,
+                "recent": recent,
+                "average_score": avg_score,
+                "reason_stats": reason_stats,
+            }
         )
 
     thread = threading.Thread(
