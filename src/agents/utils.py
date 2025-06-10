@@ -1,4 +1,17 @@
-import requests
+"""Utility functions for fetching market data."""
+
+try:
+    import requests  # type: ignore
+except Exception:  # pragma: no cover - fallback for minimal environments
+    class _DummyRequests:
+        class RequestException(Exception):
+            pass
+
+        @staticmethod
+        def get(*_, **__):
+            raise _DummyRequests.RequestException("requests library not available")
+
+    requests = _DummyRequests()
 import time
 from typing import List, Dict, Any
 
