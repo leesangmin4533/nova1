@@ -1,7 +1,8 @@
 # Trading Agent Demo
 
-This repository provides a minimal example of a multi-agent trading framework with
-a simple web dashboard built using Flask. The agents demonstrate the following roles:
+This repository demonstrates a minimal multi-agent trading framework. The project now provides a static dashboard built with React and Tailwind CSS.
+
+The agents include:
 
 - **MarketSentimentAgent**: classifies market sentiment.
 - **StrategySelector**: chooses a trading strategy based on sentiment.
@@ -10,7 +11,6 @@ a simple web dashboard built using Flask. The agents demonstrate the following r
 - **LoggerAgent**: appends agent activity to a daily `log_YYYYMMDD.jsonl` file under `C:/Users/kanur/log`.
 - **DailyLogger**: appends daily success and failure entries in `NOVA_LOGS` on your Desktop.
 - **SessionLogger**: writes all actions for a single run to `NOVA_LOGS/trade_log_<timestamp>.json`.
-- **Flask Status Server**: serves a web dashboard and JSON API.
 - **LearningAgent**: placeholder for future strategy learning.
 
 ## Requirements
@@ -29,67 +29,18 @@ Run the tests with `pytest`:
 pytest -q
 ```
 
-Run the dashboard (a Flask web server will start on port 5000):
-
-```bash
-python main.py
-```
-
-To expose the dashboard via ngrok for remote access, run:
-
-```bash
-python run_with_ngrok.py
-```
-The script will automatically install `pyngrok` if missing and print the public URL.
-
-You can view the web dashboard at `http://localhost:5000/`.
-The server exposes a JSON status API at `http://localhost:5000/api/status`.
-Log statistics can be retrieved from `http://localhost:5000/log` as JSON.
-
 ## React Dashboard
 
-The UI has been rebuilt using **React** and **Tailwind CSS**.
-To get started install the Node.js dependencies in the `ui-react` directory:
+The UI is implemented with **React** and **Tailwind CSS** and can be built into static files.
 
 ```bash
 cd ui-react
-npm install
+npm install        # first time only
+npm run build      # outputs files to ui-react/dist
 ```
 
-Start the development server with hot reloading:
-
-```bash
-npm run dev
-```
-
-Create an optimized production build (output is placed in `ui-react/dist`):
-
-```bash
-npm run build
-```
-
-The Flask API should still run separately (for example with
-`python main.py`). The React app fetches its status data from the
-`/api/status` endpoint.
-
-For a lightweight view of the latest session logs stored in
-`~/Desktop/NOVA_LOGS`, you can run the standalone report server:
-
-```bash
-python report_server.py
-```
-This will start a Flask app on port `7860` with a `/report` endpoint displaying
-a simple summary.
-
-To keep the log directory tidy, you can archive files older than a day into
-date-stamped zip files:
-
-```bash
-python log_archiver.py
-```
-
-The script compresses `.jsonl`, `.json`, `.csv`, and `.txt` logs under
-`C:/Users/kanur/log` and removes the originals after archiving.
+Open `ui-react/dist/index.html` in your browser to view the dashboard.
+The Python utilities in this repository operate independently of the UI.
 
 ## Disclaimer / 면책 조항
 
