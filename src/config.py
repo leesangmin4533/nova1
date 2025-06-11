@@ -12,6 +12,9 @@ LOG_BASE_DIR = Path(os.environ.get("NOVA_LOG_DIR", r"C:/Users/kanur/log"))
 # status server if present.
 UI_PATH = LOG_BASE_DIR / "UI" / "live_nova_decision_emotion_ui.html"
 
+# Path to the JSON file containing the latest decision
+DECISION_PATH = LOG_BASE_DIR / "판단" / "latest_decision.json"
+
 # Port used by the local Flask status server.  The value may be overridden via
 # the ``LOCAL_SERVER_PORT`` environment variable.
 LOCAL_SERVER_PORT = int(os.environ.get("LOCAL_SERVER_PORT", "5000"))

@@ -7,6 +7,9 @@ LOG_BASE_DIR = Path(os.environ.get("NOVA_LOG_DIR", r"C:/Users/kanur/log"))
 # Optional HTML UI file path
 UI_PATH = LOG_BASE_DIR / "UI" / "live_nova_decision_emotion_ui.html"
 
+# JSON file storing the most recent trading decision
+DECISION_PATH = LOG_BASE_DIR / "판단" / "latest_decision.json"
+
 # ngrok settings
 USE_NGROK = os.environ.get("USE_NGROK", "True") == "True"
 NGROK_PORT = int(os.environ.get("NGROK_PORT", "5000"))

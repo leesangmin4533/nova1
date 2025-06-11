@@ -31,6 +31,8 @@ from version import STRATEGY_VERSION
 import webbrowser
 import subprocess
 import psutil
+from config import UI_PATH
+from nova_core import save_decision
 
 # Launch local React UI if built without reopening if already open
 ui_file = Path(__file__).resolve().parent / "ui-react" / "dist" / "index.html"
@@ -52,6 +54,10 @@ if ui_file.exists() and not is_ui_already_open():
     webbrowser.open(ui_url)
 else:
     print("[✔] UI 이미 실행 중이거나 파일 없음 → 생략됨")
+
+# Automatically open the legacy HTML UI if available
+if os.path.exists(UI_PATH):
+    subprocess.Popen(["start", str(UI_PATH)], shell=True)
 
 
 SYMBOL = "KRW-BTC"
@@ -174,13 +180,14 @@ class TradingApp:
             "market_emotion_index": emotion_index,
         }
         update_state(decision=decision_data)
-        try:
-            p = Path(r"C:/Users/kanur/log/판단/latest_decision.json")
-            p.parent.mkdir(parents=True, exist_ok=True)
-            with open(p, "w", encoding="utf-8") as f:
-                json.dump(decision_data, f, ensure_ascii=False)
-        except Exception:
-            pass
+        save_decision(
+            signal,
+            reason,
+            human_action,
+            score_vs_human,
+            classified_emotion=classified_emotion,
+            market_emotion_index=emotion_index,
+        )
 
         allow_entry, entry_reason = self.entry_agent.decide_entry(signal, reason, score_percent)
 
