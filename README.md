@@ -42,6 +42,13 @@ npm run build      # outputs files to ui-react/dist
 Open `ui-react/dist/index.html` in your browser to view the dashboard.
 The Python utilities in this repository operate independently of the UI.
 
+## Legacy HTML UI
+
+The script `nova_ui_update.py` writes a small `ui_data.json` file every few
+seconds using live data from Upbit. When the legacy HTML file defined by
+`config.UI_PATH` exists, running this script automatically opens it in your
+browser and keeps the data refreshed.
+
 ## Disclaimer / 면책 조항
 
 **English:** This project is provided for demonstration and educational purposes only. It is not intended as financial advice or a solicitation to trade. Using this code for real trading is done at your own risk, and the authors disclaim all liability for any potential losses.
